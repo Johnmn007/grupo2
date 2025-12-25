@@ -1,0 +1,762 @@
+PARTE: 13
+PROYECTO: SIGEA_DSI
+FECHA: 2025-11-11 09:49:28
+CARPETAS EXCLUIDAS: bootstrap, jquery, fontawesome, etc.
+================================================================================
+
+
+============================================================
+ARCHIVO: app\templates\dashboard\index.html
+============================================================
+
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Sistema analitico de desempeño estudiantil{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item active">Dashboard</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">
+           
+            Panel de Control
+        </h2>
+        
+        <!-- Tarjetas de Estadísticas -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-light bg-azul">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4>{{ total_estudiantes }}</h4>
+                                <p class="mb-0">Estudiantes Activos</p>
+                            </div>
+                            <div class="align-self-center icon_tarj2">
+                                <i class="fas fa-users fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card text-dark bg-cards">
+                    <div class="card-body">
+                        <div class="d-flex text-white justify-content-between">
+                            <div>
+                                <h4>{{ total_cursos }}</h4>
+                                <p class="mb-0">Cursos Activos</p>
+                            </div>
+                            <div class="align-self-center icon_tarj2">
+                                <i class="fas fa-book fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card text-dark bg-cards2">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between text-white">
+                            <div>
+                                <h4>{{ estudiantes_riesgo }}</h4>
+                                <p class="mb-0">En Riesgo Académico</p>
+                            </div>
+                            <div class="align-self-center icon_tarj2">
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card text-dark bg-cards3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4>{{ total_estudiantes + total_cursos }}</h4>
+                                <p class="mb-0">Total Registros</p>
+                            </div>
+                            <div class="align-self-center icon_tarj">
+                                <i class="fas fa-database fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header text-light bg-cards0">
+                        <h5 class="card-title mb-0">
+                            
+                            Acciones Rápidas
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('estudiantes.index') }}" class="btn btn-primary w-100 text-white bg-cards2">
+                                    <i class="fas fa-users"></i><br>
+                                    Ver Estudiantes
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('estudiantes.en_riesgo') }}" class="btn btn-primary w-100 text-white bg-cards2">
+                                    <i class="fas fa-exclamation-triangle"></i><br>
+                                    Estudiantes en Riesgo
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('seguimiento.index') }}" class="btn btn-primary w-100 bg-cards">
+                                    <i class="fas fa-calculator"></i><br>
+                                    Calcular Riesgo
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('importacion.index') }}" class="btn btn-primary w-100  bg-cards0">
+                                    <i class="fas fa-file-import"></i><br>
+                                    Importar Datos
+                                </a>
+                            </div>
+                            <!-- En la sección de Acciones Rápidas, agregar: -->
+<div class="col-md-3 mb-3">
+    <a href="{{ url_for('cursos.index') }}" class="btn btn-primary w-100 text-white bg-cards0">
+        <i class="fas fa-book"></i><br>
+        Ver Cursos
+    </a>
+</div>
+<!-- En la sección de Acciones Rápidas, agregar: -->
+<div class="col-md-3 mb-3">
+    <a href="{{ url_for('inscripciones.index') }}" class="btn btn-primary w-100 text-white bg-cards">
+        <i class="fas fa-clipboard-list"></i><br>
+        Ver Inscripciones
+    </a>
+</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensaje de Bienvenida -->
+        <div class="card">
+            <div class="card-body">
+                <h4>Bienvenido, {{ current_user.username }}</h4>
+                <p class="lead">Sistema de Seguimiento y Acompañamiento para Estudiantes en Riesgo</p>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Función del Sistema:</strong> Detectar estudiantes en riesgo académico 
+                    basándose en asistencias y calificaciones, categorizándolos en tres niveles: 
+                    Sin Riesgo, Alerta Ambar y Alerta Roja.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+============================================================
+ARCHIVO: app\templates\estudiantes\crear.html
+============================================================
+
+{% extends "base.html" %}
+
+{% block title %}Crear Estudiante - Sistema de Seguimiento{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('estudiantes.index') }}">Estudiantes</a></li>
+        <li class="breadcrumb-item active">Crear Estudiante</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-user-plus text-dark"></i>
+                Crear Nuevo Estudiante
+            </h2>
+            <a href="{{ url_for('estudiantes.index') }}" class="btn btn-outline-primary text-light bg-cards">
+                <i class="fas fa-arrow-left"></i> Volver a la lista
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-cards text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle"></i>
+                    Información del Estudiante
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('estudiantes.crear') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.codigo_estudiante.label(class="form-label") }}
+                                {{ form.codigo_estudiante(class="form-control") }}
+                                {% if form.codigo_estudiante.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.codigo_estudiante.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Código único del estudiante</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.fecha_inscripcion.label(class="form-label") }}
+                                {{ form.fecha_inscripcion(class="form-control", type="date") }}
+                                {% if form.fecha_inscripcion.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.fecha_inscripcion.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.nombres.label(class="form-label") }}
+                                {{ form.nombres(class="form-control") }}
+                                {% if form.nombres.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.nombres.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.apellidos.label(class="form-label") }}
+                                {{ form.apellidos(class="form-control") }}
+                                {% if form.apellidos.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.apellidos.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.email.label(class="form-label") }}
+                                {{ form.email(class="form-control", type="email") }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.email.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.telefono.label(class="form-label") }}
+                                {{ form.telefono(class="form-control") }}
+                                {% if form.telefono.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.telefono.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Opcional</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.activo(class="form-check-input") }}
+                            {{ form.activo.label(class="form-check-label") }}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('estudiantes.index') }}" class="btn btn-primary bg-cards2">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        {{ form.submit(class="btn btn-primary bg-cards") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+============================================================
+ARCHIVO: app\templates\estudiantes\detalle.html
+============================================================
+
+{% extends "base.html" %}
+
+{% block title %}Detalle del Estudiante - Sistema de Seguimiento{% endblock %}
+
+{% block breadcrumb %}
+   
+
+        <div class="row">
+            <!-- Información del Estudiante -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-user-graduate"></i>
+                            Información del Estudiante
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-sm-4 fw-bold">Código:</div>
+                            <div class="col-sm-8">{{ estudiante.codigo_estudiante }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4 fw-bold">Nombres:</div>
+                            <div class="col-sm-8">{{ estudiante.nombres }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4 fw-bold">Apellidos:</div>
+                            <div class="col-sm-8">{{ estudiante.apellidos }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4 fw-bold">Email:</div>
+                            <div class="col-sm-8">{{ estudiante.email }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4 fw-bold">Teléfono:</div>
+                            <div class="col-sm-8">{{ estudiante.telefono or 'No registrado' }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4 fw-bold">Fecha Inscripción:</div>
+                            <div class="col-sm-8">{{ estudiante.fecha_inscripcion.strftime('%d/%m/%Y') }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4 fw-bold">Estado:</div>
+                            <div class="col-sm-8">
+                                {% if estudiante.activo %}
+                                <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                <span class="badge bg-danger">Inactivo</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historial de Riesgo -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-line"></i>
+                            Seguimiento de Riesgo Académico
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if seguimientos %}
+                            {% for seguimiento in seguimientos %}
+                            <div class="border-start border-4 
+                                {% if seguimiento.categoria_riesgo == 'ALERTA_ROJA' %}border-danger
+                                {% elif seguimiento.categoria_riesgo == 'ALERTA_AMARILLA' %}border-warning
+                                {% else %}border-success{% endif %} 
+                                ps-3 mb-3">
+                                <div class="d-flex justify-content-between">
+                                    <h6 class="mb-1">
+                                        Semestre {{ seguimiento.semestre }}
+                                    </h6>
+                                    <span class="badge 
+                                        {% if seguimiento.categoria_riesgo == 'ALERTA_ROJA' %}bg-danger
+                                        {% elif seguimiento.categoria_riesgo == 'ALERTA_AMARILLA' %}bg-warning
+                                        {% else %}bg-success{% endif %}">
+                                        {{ seguimiento.categoria_riesgo.replace('_', ' ') }}
+                                    </span>
+                                </div>
+                                <p class="mb-1 small">
+                                    <strong>Puntaje:</strong> {{ "%.2f"|format(seguimiento.puntaje_riesgo) }}
+                                </p>
+                                <p class="mb-1 small text-muted">
+                                    <strong>Evaluación:</strong> {{ seguimiento.fecha_evaluacion.strftime('%d/%m/%Y') }}
+                                </p>
+                                {% if seguimiento.observaciones %}
+                                <p class="mb-0 small">
+                                    <strong>Observaciones:</strong> {{ seguimiento.observaciones }}
+                                </p>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-info-circle fa-2x mb-2"></i>
+                                <p>No hay registros de seguimiento para este estudiante</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('estudiantes.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver a la lista
+                    </a>
+                     <!-- BOTONES NUEVOS: Editar y Eliminar -->
+            <a href="{{ url_for('estudiantes.editar', estudiante_id=estudiante.id) }}" 
+               class="btn btn-warning">
+                <i class="fas fa-edit"></i> Editar Estudiante
+            </a>
+            <form method="POST" action="{{ url_for('estudiantes.eliminar', estudiante_id=estudiante.id) }}" 
+                  class="d-inline" onsubmit="return confirm('¿Está seguro de eliminar este estudiante?');">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Eliminar Estudiante
+                </button>
+            </form>
+                    <a href="{{ url_for('estudiantes.en_riesgo') }}" class="btn btn-warning">
+                        <i class="fas fa-exclamation-triangle"></i> Ver todos en riesgo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
+
+
+============================================================
+ARCHIVO: app\templates\estudiantes\editar.html
+============================================================
+
+{% extends "base.html" %}
+
+{% block title %}Editar Estudiante - Sistema de Seguimiento{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('estudiantes.index') }}">Estudiantes</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('estudiantes.detalle', estudiante_id=estudiante.id) }}">{{ estudiante.nombres }} {{ estudiante.apellidos }}</a></li>
+        <li class="breadcrumb-item active">Editar</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-edit text-primary"></i>
+                Editar Estudiante
+            </h2>
+            <a href="{{ url_for('estudiantes.detalle', estudiante_id=estudiante.id) }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Volver al detalle
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit"></i>
+                    Editar Información del Estudiante
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('estudiantes.editar', estudiante_id=estudiante.id) }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.codigo_estudiante.label(class="form-label") }}
+                                {{ form.codigo_estudiante(class="form-control") }}
+                                {% if form.codigo_estudiante.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.codigo_estudiante.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.fecha_inscripcion.label(class="form-label") }}
+                                {{ form.fecha_inscripcion(class="form-control", type="date") }}
+                                {% if form.fecha_inscripcion.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.fecha_inscripcion.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.nombres.label(class="form-label") }}
+                                {{ form.nombres(class="form-control") }}
+                                {% if form.nombres.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.nombres.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.apellidos.label(class="form-label") }}
+                                {{ form.apellidos(class="form-control") }}
+                                {% if form.apellidos.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.apellidos.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.email.label(class="form-label") }}
+                                {{ form.email(class="form-control", type="email") }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.email.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.telefono.label(class="form-label") }}
+                                {{ form.telefono(class="form-control") }}
+                                {% if form.telefono.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.telefono.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.activo(class="form-check-input") }}
+                            {{ form.activo.label(class="form-check-label") }}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('estudiantes.detalle', estudiante_id=estudiante.id) }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <div>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save"></i> Actualizar Estudiante
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+============================================================
+ARCHIVO: app\templates\estudiantes\en_riesgo.html
+============================================================
+
+{% extends "base.html" %}
+{% block title %}Estudiantes en Riesgo - SISE{% endblock %}
+{% block content %}
+   
+
+    <div class="container mt-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('estudiantes.index') }}">Estudiantes</a></li>
+                <li class="breadcrumb-item active">Estudiantes en Riesgo</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="text-dark">
+                        <span class="#"><i class="fas fa-exclamation-triangle "></i></span>
+                        Estudiantes en Riesgo Académico
+                    </h2>
+                    <a href="{{ url_for('estudiantes.index') }}" class="btn btn-primary bg-cards2">
+                        <i class="fas fa-arrow-left"></i> Volver a Estudiantes
+                    </a>
+                </div>
+
+                <!-- Alertas por categoría -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card border-light bg-cards3">
+                            <div class="card-body text-center">
+                                <h3 class="text-dark mb-1">
+                                    {{ estudiantes_riesgo.total }}
+                                </h3>
+                                <p class="mb-0">Total en Riesgo</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de estudiantes en riesgo -->
+                <div class="card">
+                    <div class="card-header bg-cards text-light">
+                        <h5 class="card-title mb-0">
+                            Lista de Estudiantes con Alertas
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if estudiantes_riesgo.items %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-warning">
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Estudiante</th>
+                                        <th>Categoría de Riesgo</th>
+                                        <th>Puntaje</th>
+                                        <th>Última Evaluación</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for estudiante, seguimiento in estudiantes_riesgo.items %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ estudiante.codigo_estudiante }}</strong>
+                                        </td>
+                                        <td>
+                                            {{ estudiante.nombres }} {{ estudiante.apellidos }}
+                                        </td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if seguimiento.categoria_riesgo == 'ALERTA_ROJA' %}bg-danger
+                                                {% elif seguimiento.categoria_riesgo == 'ALERTA_AMARILLA' %}bg-warning
+                                                {% else %}bg-secondary{% endif %}">
+                                                {{ seguimiento.categoria_riesgo.replace('_', ' ') }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <strong>{{ "%.2f"|format(seguimiento.puntaje_riesgo) }}</strong>
+                                        </td>
+                                        <td>
+                                            {{ seguimiento.fecha_evaluacion.strftime('%d/%m/%Y') }}
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('estudiantes.detalle', estudiante_id=estudiante.id) }}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> Detalle
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <h5>¡Excelentes noticias!</h5>
+                            <p class="text-muted">No hay estudiantes en riesgo académico actualmente.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Paginación -->
+                    {% if estudiantes_riesgo.pages > 1 %}
+                    <div class="card-footer">
+                        <nav aria-label="Paginación">
+                            <ul class="pagination justify-content-center mb-0">
+                                {% for page_num in estudiantes_riesgo.iter_pages() %}
+                                    {% if page_num %}
+                                        <li class="page-item {% if page_num == estudiantes_riesgo.page %}active{% endif %}">
+                                            <a class="page-link" 
+                                               href="{{ url_for('estudiantes.en_riesgo', page=page_num) }}">
+                                                {{ page_num }}
+                                            </a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link">...</span>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </nav>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
+

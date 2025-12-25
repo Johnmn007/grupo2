@@ -1,0 +1,732 @@
+PARTE: 02
+PROYECTO: SIGEA_DSI
+FECHA: 2025-11-11 09:49:28
+CARPETAS EXCLUIDAS: bootstrap, jquery, fontawesome, etc.
+================================================================================
+
+
+============================================================
+ARCHIVO: app\models.py
+============================================================
+
+# app/models.py
+from app.extensions import db  # Usar la misma instancia de extensions
+from flask_login import UserMixin
+from datetime import datetime
+
+# TODOS los modelos usan db desde extensions
+
+class Estudiante(db.Model):
+    __tablename__ = 'estudiantes'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    codigo_estudiante = db.Column(db.String(20), unique=True, nullable=False)
+    nombres = db.Column(db.String(100), nullable=False)
+    apellidos = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(150), unique=True, nullable=False)
+    telefono = db.Column(db.String(15))
+    fecha_inscripcion = db.Column(db.Date, default=datetime.utcnow)
+    activo = db.Column(db.Boolean, default=True)
+    
+    # Relaciones
+    inscripciones = db.relationship('Inscripcion', backref='estudiante', lazy=True)
+    seguimientos = db.relationship('SeguimientoRiesgo', backref='estudiante', lazy=True)
+    intervenciones = db.relationship('Intervencion', backref='estudiante', lazy=True)
+    
+    def __repr__(self):
+        return f'<Estudiante {self.codigo_estudiante}: {self.nombres} {self.apellidos}>'
+
+class Ciclo(db.Model):
+    __tablename__ = 'ciclos'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(50), nullable=False)  # Ej: "Ciclo I 2025", "Ciclo II 2025"
+    codigo_ciclo = db.Column(db.String(20), unique=True, nullable=False)  # Ej: "2025-1", "2025-2"
+    fecha_inicio = db.Column(db.Date, nullable=False)
+    fecha_fin = db.Column(db.Date, nullable=False)
+    activo = db.Column(db.Boolean, default=True)
+    
+    # Relaciones
+    cursos = db.relationship('Curso', backref='ciclo', lazy=True)
+    
+    def __repr__(self):
+        return f'<Ciclo {self.codigo_ciclo}: {self.nombre}>'
+
+class Curso(db.Model):
+    __tablename__ = 'cursos'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    codigo_curso = db.Column(db.String(20), unique=True, nullable=False)
+    nombre_curso = db.Column(db.String(100), nullable=False)
+    creditos = db.Column(db.Integer, default=3)
+    semestre = db.Column(db.String(10), nullable=False)
+    ciclo_id = db.Column(db.Integer, db.ForeignKey('ciclos.id'), nullable=False)
+    activo = db.Column(db.Boolean, default=True)
+    
+    # Relaciones
+    inscripciones = db.relationship('Inscripcion', backref='curso', lazy=True)
+    evaluaciones = db.relationship('Evaluacion', backref='curso', lazy=True)
+    
+    def __repr__(self):
+        return f'<Curso {self.codigo_curso}: {self.nombre_curso}>'
+
+class Inscripcion(db.Model):
+    __tablename__ = 'inscripciones'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    estudiante_id = db.Column(db.Integer, db.ForeignKey('estudiantes.id'), nullable=False)
+    curso_id = db.Column(db.Integer, db.ForeignKey('cursos.id'), nullable=False)
+    fecha_inscripcion = db.Column(db.Date, default=datetime.utcnow)
+    estado = db.Column(db.String(20), default='ACTIVO')
+    
+    # Relaciones
+    asistencias = db.relationship('Asistencia', backref='inscripcion', lazy=True)
+    notas = db.relationship('Nota', backref='inscripcion', lazy=True)
+    
+    def __repr__(self):
+        return f'<Inscripcion Estudiante:{self.estudiante_id} Curso:{self.curso_id}>'
+
+class Asistencia(db.Model):
+    __tablename__ = 'asistencias'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    inscripcion_id = db.Column(db.Integer, db.ForeignKey('inscripciones.id'), nullable=False)
+    fecha = db.Column(db.Date, nullable=False)
+    presente = db.Column(db.Boolean, default=False)
+    justificado = db.Column(db.Boolean, default=False)
+    observaciones = db.Column(db.Text)
+    
+    def __repr__(self):
+        return f'<Asistencia {self.fecha} - Presente: {self.presente}>'
+
+class Evaluacion(db.Model):
+    __tablename__ = 'evaluaciones'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    curso_id = db.Column(db.Integer, db.ForeignKey('cursos.id'), nullable=False)
+    nombre_evaluacion = db.Column(db.String(100), nullable=False)
+    tipo_evaluacion = db.Column(db.String(50))
+    peso = db.Column(db.Numeric(5, 2), default=100.0)
+    fecha_creacion = db.Column(db.Date, default=datetime.utcnow)
+    
+    # Relaciones
+    notas = db.relationship('Nota', backref='evaluacion', lazy=True)
+    
+    def __repr__(self):
+        return f'<Evaluacion {self.nombre_evaluacion}>'
+
+class Nota(db.Model):
+    __tablename__ = 'notas'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    inscripcion_id = db.Column(db.Integer, db.ForeignKey('inscripciones.id'), nullable=False)
+    evaluacion_id = db.Column(db.Integer, db.ForeignKey('evaluaciones.id'), nullable=False)
+    nota = db.Column(db.Numeric(5, 2))
+    fecha_registro = db.Column(db.Date, default=datetime.utcnow)
+    observaciones = db.Column(db.Text)
+    
+    def __repr__(self):
+        return f'<Nota {self.nota}>'
+
+class SeguimientoRiesgo(db.Model):
+    __tablename__ = 'seguimiento_riesgo'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    estudiante_id = db.Column(db.Integer, db.ForeignKey('estudiantes.id'), nullable=False)
+    semestre = db.Column(db.String(10), nullable=False)
+    categoria_riesgo = db.Column(db.String(20), default='SIN_RIESGO')
+    puntaje_riesgo = db.Column(db.Numeric(5, 2), default=0.0)
+    fecha_evaluacion = db.Column(db.Date, default=datetime.utcnow)
+    factores_riesgo = db.Column(db.JSON)
+    observaciones = db.Column(db.Text)
+    
+    def __repr__(self):
+        return f'<SeguimientoRiesgo {self.estudiante_id} - {self.categoria_riesgo}>'
+
+class Intervencion(db.Model):
+    __tablename__ = 'intervenciones'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    estudiante_id = db.Column(db.Integer, db.ForeignKey('estudiantes.id'), nullable=False)
+    tipo_intervencion = db.Column(db.String(50))
+    descripcion = db.Column(db.Text, nullable=False)
+    fecha_intervencion = db.Column(db.Date, default=datetime.utcnow)
+    responsable = db.Column(db.String(100))
+    estado = db.Column(db.String(20), default='PENDIENTE')
+    resultado = db.Column(db.Text)
+    
+    def __repr__(self):
+        return f'<Intervencion {self.tipo_intervencion} - {self.estado}>'
+
+class Usuario(UserMixin, db.Model):
+    __tablename__ = 'usuarios'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128))
+    rol = db.Column(db.String(20), default='docente')
+    activo = db.Column(db.Boolean, default=True)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<Usuario {self.username}>'
+
+class Reporte(db.Model):
+    __tablename__ = 'reportes'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    tipo_reporte = db.Column(db.String(50), nullable=False)
+    titulo = db.Column(db.String(200), nullable=False)
+    descripcion = db.Column(db.Text)
+    parametros = db.Column(db.JSON)  # Parámetros usados para generar el reporte
+    contenido = db.Column(db.Text)   # HTML/JSON del reporte generado
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    fecha_generacion = db.Column(db.DateTime, default=datetime.utcnow)
+    archivo_path = db.Column(db.String(500))  # Ruta del archivo PDF generado
+    
+    # Relación
+    usuario = db.relationship('Usuario', backref='reportes')
+    
+    def __repr__(self):
+        return f'<Reporte {self.tipo_reporte} - {self.fecha_generacion}>'
+
+
+============================================================
+ARCHIVO: app\__init__.py
+============================================================
+
+import os
+from flask import Flask
+from app.extensions import db, migrate, login_manager
+from config import config_by_name
+
+def create_app(config_name=None):
+    app = Flask(__name__)
+    
+    # Configuración
+    config_name = config_name or os.getenv("FLASK_CONFIG", "development")
+    app.config.from_object(config_by_name[config_name])
+
+    # Inicializar extensiones
+    db.init_app(app)
+    migrate.init_app(app, db)
+    login_manager.init_app(app)
+    
+    # Configurar login manager
+    login_manager.login_view = 'auth.login'
+    login_manager.login_message = 'Por favor inicia sesión para acceder a esta página.'
+    
+    # IMPORTAR MODELOS DESPUÉS de inicializar db - ESTO ES CLAVE
+    with app.app_context():
+        # Importar todos los modelos para que SQLAlchemy los registre
+        from app.models import (
+            Usuario, Estudiante, Curso, Inscripcion, 
+            Asistencia, Evaluacion, Nota, 
+            SeguimientoRiesgo, Intervencion, Ciclo, Reporte
+        )
+    
+    # Configurar user_loader
+    @login_manager.user_loader
+    def load_user(user_id):
+        return Usuario.query.get(int(user_id))
+    
+    # ============================================================================
+    # REGISTRAR BLUEPRINTS - AQUÍ VAN TODOS LOS MÓDULOS
+    # ============================================================================
+    
+    # 1. Auth (Autenticación)
+    from app.modules.auth import auth_bp
+    app.register_blueprint(auth_bp)
+    
+    from app.modules.main import main_bp
+    app.register_blueprint(main_bp)
+    
+    # 2. Dashboard (Panel principal)
+    from app.modules.dashboard import dashboard_bp
+    app.register_blueprint(dashboard_bp)
+    
+    # 3. Estudiantes (Gestión de estudiantes)
+    from app.modules.estudiantes import estudiantes_bp
+    app.register_blueprint(estudiantes_bp)
+    
+    # 4. Seguimiento (Cálculos de riesgo)
+    from app.modules.seguimiento import seguimiento_bp
+    app.register_blueprint(seguimiento_bp)
+    
+    # 5. Importación
+    from app.modules.importacion import importacion_bp
+    app.register_blueprint(importacion_bp)
+    
+    # 6. Administración
+    from app.modules.admin import admin_bp
+    app.register_blueprint(admin_bp)
+    
+    # 7. Reportes (Generación de reportes)
+    from app.modules.reportes import reportes_bp
+    app.register_blueprint(reportes_bp)
+    
+    # 8. Cursos
+    from app.modules.cursos import cursos_bp
+    app.register_blueprint(cursos_bp)
+    
+    # 9. Inscripciones
+    from app.modules.inscripciones import inscripciones_bp
+    app.register_blueprint(inscripciones_bp)
+    
+    # 10. Evaluaciones
+    from app.modules.evaluaciones import evaluaciones_bp
+    app.register_blueprint(evaluaciones_bp)
+    
+    # 11. Asistencias
+    from app.modules.asistencias import asistencias_bp
+    app.register_blueprint(asistencias_bp)
+    
+    return app
+
+
+============================================================
+ARCHIVO: app\modules\admin\routes.py
+============================================================
+
+# app/modules/admin/routes.py
+from flask import render_template, request, jsonify, flash, redirect, url_for
+from flask_login import login_required, current_user
+from werkzeug.security import generate_password_hash
+from . import admin_bp
+from app.models import Usuario
+from app.extensions import db
+import json
+import os
+import re
+from datetime import datetime
+
+# OBTENER SEMESTRE ACTUAL DINÁMICAMENTE
+def obtener_semestre_actual():
+    """Calcula el semestre actual basado en la fecha"""
+    ahora = datetime.now()
+    año = ahora.year
+    mes = ahora.month
+    
+    # Lógica para determinar el semestre:
+    # Enero-Junio: Semestre 1 (2025-1)
+    # Julio-Diciembre: Semestre 2 (2025-2)
+    semestre = 1 if 1 <= mes <= 6 else 2
+    return f"{año}-{semestre}"
+
+# Configuración por defecto del sistema - CON SEMESTRE DINÁMICO
+CONFIG_DEFAULT = {
+    'umbral_amarillo': 0.4,
+    'umbral_rojo': 0.7,
+    'peso_rendimiento': 0.4,
+    'peso_asistencia': 0.3,
+    'peso_distribucion': 0.3,
+    'semestre_actual': obtener_semestre_actual(),  # ¡DINÁMICO!
+    'nota_minima_aprobatoria': 12.0,
+    'porcentaje_asistencia_minimo': 70.0
+}
+
+def guardar_configuracion(config):
+    """Guardar configuración en archivo"""
+    try:
+        config_path = os.path.join(os.path.dirname(__file__), '..', '..', 'config_sistema.json')
+        with open(config_path, 'w', encoding='utf-8') as f:
+            json.dump(config, f, indent=4, ensure_ascii=False)
+        print("✅ Configuración guardada exitosamente")
+        return True
+    except Exception as e:
+        print(f"❌ Error guardando configuración: {e}")
+        return False
+
+def cargar_configuracion():
+    """Cargar configuración desde archivo o usar valores por defecto"""
+    try:
+        config_path = os.path.join(os.path.dirname(__file__), '..', '..', 'config_sistema.json')
+        print(f"📁 Buscando configuración en: {config_path}")
+        
+        if os.path.exists(config_path):
+            print("✅ Archivo de configuración encontrado")
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config_cargada = json.load(f)
+            
+            print(f"🔍 Configuración cargada: {list(config_cargada.keys())}")
+            
+            # FORZAR MIGRACIÓN SI FALTAN CAMPOS NUEVOS
+            necesita_migracion = (
+                'peso_distribucion' not in config_cargada or 
+                'peso_progreso' in config_cargada or 
+                'peso_historial' in config_cargada
+            )
+            
+            if necesita_migracion:
+                print("🔄 Migrando configuración a nueva estructura...")
+                
+                # Crear configuración nueva basada en DEFAULT
+                config_migrada = CONFIG_DEFAULT.copy()
+                
+                # Migrar valores personalizados si existen
+                if 'umbral_amarillo' in config_cargada:
+                    config_migrada['umbral_amarillo'] = config_cargada['umbral_amarillo']
+                if 'umbral_rojo' in config_cargada:
+                    config_migrada['umbral_rojo'] = config_cargada['umbral_rojo']
+                if 'semestre_actual' in config_cargada:
+                    config_migrada['semestre_actual'] = config_cargada['semestre_actual']
+                if 'nota_minima_aprobatoria' in config_cargada:
+                    config_migrada['nota_minima_aprobatoria'] = config_cargada['nota_minima_aprobatoria']
+                if 'porcentaje_asistencia_minimo' in config_cargada:
+                    config_migrada['porcentaje_asistencia_minimo'] = config_cargada['porcentaje_asistencia_minimo']
+                
+                # Guardar configuración migrada
+                guardar_configuracion(config_migrada)
+                print("✅ Migración completada")
+                return config_migrada
+            
+            print("✅ Usando configuración actual")
+            return config_cargada
+        else:
+            print("📝 No existe archivo de configuración, usando valores por defecto")
+            # Crear archivo con valores por defecto
+            guardar_configuracion(CONFIG_DEFAULT)
+            return CONFIG_DEFAULT
+            
+    except Exception as e:
+        print(f"❌ Error cargando configuración: {e}")
+    
+    # Si hay error, usar valores por defecto
+    print("🔄 Usando configuración por defecto")
+    return CONFIG_DEFAULT
+
+@admin_bp.route('/')
+@login_required
+def index():
+    """Panel de administración principal"""
+    if current_user.rol != 'administrador':
+        flash('No tiene permisos para acceder a esta sección', 'danger')
+        return redirect(url_for('dashboard.index'))
+    
+    config = cargar_configuracion()
+    print(f"🎯 Configuración final: {config}")
+    print(f"📅 Semestre actual: {config['semestre_actual']}")
+    
+    stats = {
+        'total_usuarios': Usuario.query.count(),
+        'usuarios_activos': Usuario.query.filter_by(activo=True).count(),
+        'administradores': Usuario.query.filter_by(rol='administrador').count()
+    }
+    
+    return render_template('admin/index.html', config=config, stats=stats)
+
+@admin_bp.route('/configuracion', methods=['GET', 'POST'])
+@login_required
+def configuracion():
+    """Configuración del sistema"""
+    if current_user.rol != 'administrador':
+        flash('No tiene permisos para acceder a esta sección', 'danger')
+        return redirect(url_for('dashboard.index'))
+    
+    config = cargar_configuracion()
+    
+    if request.method == 'POST':
+        try:
+            # CONFIGURACIÓN ACTUALIZADA - Solo 3 factores
+            nueva_config = {
+                'umbral_amarillo': float(request.form.get('umbral_amarillo', 0.4)),
+                'umbral_rojo': float(request.form.get('umbral_rojo', 0.7)),
+                'peso_rendimiento': float(request.form.get('peso_rendimiento', 0.4)),
+                'peso_asistencia': float(request.form.get('peso_asistencia', 0.3)),
+                'peso_distribucion': float(request.form.get('peso_distribucion', 0.3)),
+                'semestre_actual': request.form.get('semestre_actual', obtener_semestre_actual()),
+                'nota_minima_aprobatoria': float(request.form.get('nota_minima_aprobatoria', 12.0)),
+                'porcentaje_asistencia_minimo': float(request.form.get('porcentaje_asistencia_minimo', 70.0))
+            }
+            
+            # VALIDACIÓN ACTUALIZADA - Solo 3 factores
+            total_pesos = (nueva_config['peso_rendimiento'] + 
+                          nueva_config['peso_asistencia'] + 
+                          nueva_config['peso_distribucion'])
+            
+            if abs(total_pesos - 1.0) > 0.01:
+                flash('Los pesos de los factores deben sumar exactamente 1.0', 'danger')
+            else:
+                guardar_configuracion(nueva_config)
+                flash('Configuración actualizada exitosamente', 'success')
+                
+        except ValueError as e:
+            flash('Error en los valores ingresados. Verifique que sean números válidos.', 'danger')
+        except Exception as e:
+            flash(f'Error al guardar la configuración: {str(e)}', 'danger')
+        
+        return redirect(url_for('admin.configuracion'))
+    
+    return render_template('admin/configuracion.html', config=config)
+
+@admin_bp.route('/cambiar-semestre', methods=['POST'])
+@login_required
+def cambiar_semestre():
+    """Cambiar solo el semestre actual"""
+    if current_user.rol != 'administrador':
+        return jsonify({'error': 'No autorizado'}), 403
+    
+    try:
+        nuevo_semestre = request.form.get('semestre')
+        
+        if not nuevo_semestre:
+            flash('El semestre no puede estar vacío', 'danger')
+            return redirect(url_for('admin.configuracion'))
+        
+        # Validar formato de semestre (YYYY-N)
+        if not re.match(r'^\d{4}-[12]$', nuevo_semestre):
+            flash('Formato de semestre inválido. Use: AÑO-SEMESTRE (ej: 2025-1, 2025-2)', 'danger')
+            return redirect(url_for('admin.configuracion'))
+        
+        # Cargar configuración actual
+        config = cargar_configuracion()
+        
+        # Actualizar solo el semestre
+        config['semestre_actual'] = nuevo_semestre
+        
+        # Guardar configuración actualizada
+        guardar_configuracion(config)
+        
+        flash(f'Semestre cambiado exitosamente a {nuevo_semestre}', 'success')
+        
+    except Exception as e:
+        flash(f'Error al cambiar semestre: {str(e)}', 'danger')
+    
+    return redirect(url_for('admin.configuracion'))
+
+@admin_bp.route('/usuarios')
+@login_required
+def usuarios():
+    """Gestión de usuarios del sistema"""
+    if current_user.rol != 'administrador':
+        flash('No tiene permisos para acceder a esta sección', 'danger')
+        return redirect(url_for('dashboard.index'))
+    
+    usuarios = Usuario.query.all()
+    return render_template('admin/usuarios.html', usuarios=usuarios)
+
+@admin_bp.route('/usuarios/crear', methods=['POST'])
+@login_required
+def crear_usuario():
+    """Crear nuevo usuario"""
+    if current_user.rol != 'administrador':
+        flash('No tiene permisos para esta acción', 'danger')
+        return redirect(url_for('admin.usuarios'))
+    
+    try:
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        rol = request.form.get('rol', 'docente')
+        
+        # Validaciones
+        if not all([username, email, password, confirm_password]):
+            flash('Todos los campos son obligatorios', 'danger')
+            return redirect(url_for('admin.usuarios'))
+            
+        if password != confirm_password:
+            flash('Las contraseñas no coinciden', 'danger')
+            return redirect(url_for('admin.usuarios'))
+            
+        if Usuario.query.filter_by(username=username).first():
+            flash('El nombre de usuario ya existe', 'danger')
+            return redirect(url_for('admin.usuarios'))
+            
+        if Usuario.query.filter_by(email=email).first():
+            flash('El email ya está registrado', 'danger')
+            return redirect(url_for('admin.usuarios'))
+        
+        # Crear usuario
+        nuevo_usuario = Usuario(
+            username=username,
+            email=email,
+            password_hash=generate_password_hash(password),
+            rol=rol,
+            activo=True
+        )
+        
+        db.session.add(nuevo_usuario)
+        db.session.commit()
+        
+        flash('Usuario creado exitosamente', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al crear usuario: {str(e)}', 'danger')
+    
+    return redirect(url_for('admin.usuarios'))
+
+@admin_bp.route('/usuarios/<int:usuario_id>/toggle', methods=['POST'])
+@login_required
+def toggle_usuario(usuario_id):
+    """Activar/desactivar usuario"""
+    if current_user.rol != 'administrador':
+        return jsonify({'error': 'No autorizado'}), 403
+    
+    try:
+        usuario = Usuario.query.get_or_404(usuario_id)
+        
+        # No permitir desactivarse a sí mismo
+        if usuario.id == current_user.id:
+            return jsonify({'error': 'No puede cambiar su propio estado'}), 400
+            
+        usuario.activo = not usuario.activo
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'nuevo_estado': 'Activo' if usuario.activo else 'Inactivo',
+            'message': f'Usuario {"activado" if usuario.activo else "desactivado"} exitosamente'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@admin_bp.route('/usuarios/<int:usuario_id>/cambiar-rol', methods=['POST'])
+@login_required
+def cambiar_rol_usuario(usuario_id):
+    """Cambiar rol de usuario"""
+    if current_user.rol != 'administrador':
+        return jsonify({'error': 'No autorizado'}), 403
+    
+    try:
+        data = request.get_json()
+        nuevo_rol = data.get('rol')
+        
+        if nuevo_rol not in ['administrador', 'coordinador', 'docente']:
+            return jsonify({'error': 'Rol inválido'}), 400
+            
+        usuario = Usuario.query.get_or_404(usuario_id)
+        
+        # No permitir cambiar el propio rol
+        if usuario.id == current_user.id:
+            return jsonify({'error': 'No puede cambiar su propio rol'}), 400
+            
+        usuario.rol = nuevo_rol
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'nuevo_rol': nuevo_rol,
+            'message': f'Rol cambiado a {nuevo_rol} exitosamente'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@admin_bp.route('/usuarios/<int:usuario_id>/eliminar', methods=['POST'])
+@login_required
+def eliminar_usuario(usuario_id):
+    """Eliminar usuario"""
+    if current_user.rol != 'administrador':
+        return jsonify({'error': 'No autorizado'}), 403
+    
+    try:
+        usuario = Usuario.query.get_or_404(usuario_id)
+        
+        # No permitir eliminarse a sí mismo
+        if usuario.id == current_user.id:
+            return jsonify({'error': 'No puede eliminarse a sí mismo'}), 400
+            
+        db.session.delete(usuario)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Usuario eliminado exitosamente'})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@admin_bp.route('/backup')
+@login_required
+def backup():
+    """Panel de backup y restauración"""
+    if current_user.rol != 'administrador':
+        flash('No tiene permisos para acceder a esta sección', 'danger')
+        return redirect(url_for('dashboard.index'))
+    
+    return render_template('admin/backup.html')
+
+@admin_bp.route('/logs')
+@login_required
+def logs():
+    """Visualización de logs del sistema"""
+    if current_user.rol != 'administrador':
+        flash('No tiene permisos para acceder a esta sección', 'danger')
+        return redirect(url_for('dashboard.index'))
+    
+    logs_sistema = [
+        {'fecha': '2024-10-02 10:30:00', 'nivel': 'INFO', 'mensaje': 'Sistema iniciado correctamente'},
+        {'fecha': '2024-10-02 10:35:00', 'nivel': 'INFO', 'mensaje': 'Cálculo de riesgo ejecutado para 5 estudiantes'},
+        {'fecha': '2024-10-02 11:00:00', 'nivel': 'WARNING', 'mensaje': 'Estudiante 2024EST001 detectado en alerta roja'},
+    ]
+    
+    return render_template('admin/logs.html', logs=logs_sistema)
+
+
+============================================================
+ARCHIVO: app\modules\admin\__init__.py
+============================================================
+
+# app/modules/admin/__init__.py
+from flask import Blueprint
+
+admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
+
+from . import routes
+
+
+============================================================
+ARCHIVO: app\modules\asistencias\forms.py
+============================================================
+
+# app/modules/asistencias/forms.py
+from flask_wtf import FlaskForm
+from wtforms import SelectField, DateField, BooleanField, StringField, SubmitField
+from wtforms.validators import DataRequired, Optional, Length
+from datetime import datetime
+
+class AsistenciaForm(FlaskForm):
+    inscripcion_id = SelectField('Inscripción', coerce=int, validators=[DataRequired()])
+    fecha = DateField('Fecha de Clase', validators=[DataRequired()], default=datetime.utcnow)
+    presente = BooleanField('Presente', default=True)
+    justificado = BooleanField('Justificado', default=False)
+    observaciones = StringField('Observaciones', 
+                               validators=[Optional(), Length(max=500)])
+    submit = SubmitField('Registrar Asistencia')
+    
+    def __init__(self, *args, **kwargs):
+        super(AsistenciaForm, self).__init__(*args, **kwargs)
+        # Importar modelos dentro del método para evitar importaciones circulares
+        from app.models import Inscripcion, Estudiante, Curso
+        
+        # Cargar inscripciones activas
+        self.inscripcion_id.choices = [
+            (ins.id, f"{ins.estudiante.codigo_estudiante} - {ins.estudiante.nombres} {ins.estudiante.apellidos} - {ins.curso.nombre_curso}")
+            for ins in Inscripcion.query.join(Estudiante).join(Curso).filter(
+                Inscripcion.estado == 'ACTIVO',
+                Estudiante.activo == True,
+                Curso.activo == True
+            ).order_by(Curso.nombre_curso, Estudiante.apellidos).all()
+        ]
+
+class AsistenciaMasivaForm(FlaskForm):
+    curso_id = SelectField('Curso', coerce=int, validators=[DataRequired()])
+    fecha = DateField('Fecha de Clase', validators=[DataRequired()], default=datetime.utcnow)
+    submit = SubmitField('Generar Formulario Masivo')
+    
+    def __init__(self, *args, **kwargs):
+        super(AsistenciaMasivaForm, self).__init__(*args, **kwargs)
+        # Importar modelos dentro del método
+        from app.models import Curso
+        
+        # Cargar cursos activos
+        self.curso_id.choices = [
+            (curso.id, f"{curso.codigo_curso} - {curso.nombre_curso} ({curso.semestre})")
+            for curso in Curso.query.filter_by(activo=True).order_by('semestre', 'nombre_curso').all()
+        ]
+

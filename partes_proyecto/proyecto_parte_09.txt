@@ -1,0 +1,748 @@
+PARTE: 09
+PROYECTO: SIGEA_DSI
+FECHA: 2025-11-11 09:49:28
+CARPETAS EXCLUIDAS: bootstrap, jquery, fontawesome, etc.
+================================================================================
+
+
+============================================================
+ARCHIVO: app\templates\admin\configuracion.html
+============================================================
+
+{% extends "base.html" %}
+
+{% block title %}Configuración - Sistema de Seguimiento{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Administración</a></li>
+        <li class="breadcrumb-item active">Configuración</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-sliders-h text-primary"></i>
+                Configuración del Sistema
+            </h2>
+            <a href="{{ url_for('admin.index') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+
+        <form method="POST" action="{{ url_for('admin.configuracion') }}">
+            <div class="row">
+                <!-- Umbrales de Riesgo -->
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Umbrales de Riesgo
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="umbral_amarillo" class="form-label">
+                                    Umbral Alerta Amarilla
+                                    <small class="text-muted">(0.0 - 1.0)</small>
+                                </label>
+                                <input type="number" class="form-control" id="umbral_amarillo" 
+                                       name="umbral_amarillo" step="0.01" min="0" max="1"
+                                       value="{{ "%.2f"|format(config.umbral_amarillo) }}" required>
+                                <div class="form-text">
+                                    Puntaje mínimo para considerar Alerta Amarilla
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="umbral_rojo" class="form-label">
+                                    Umbral Alerta Roja
+                                    <small class="text-muted">(0.0 - 1.0)</small>
+                                </label>
+                                <input type="number" class="form-control" id="umbral_rojo" 
+                                       name="umbral_rojo" step="0.01" min="0" max="1"
+                                       value="{{ "%.2f"|format(config.umbral_rojo) }}" required>
+                                <div class="form-text">
+                                    Puntaje mínimo para considerar Alerta Roja
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pesos de Factores - ACTUALIZADO A 3 FACTORES -->
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-balance-scale"></i>
+                                Pesos de Factores - Semestre Actual
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="peso_rendimiento" class="form-label">
+                                    Peso Rendimiento Académico
+                                    <small class="text-muted">(0.0 - 1.0)</small>
+                                </label>
+                                <input type="number" class="form-control" id="peso_rendimiento" 
+                                       name="peso_rendimiento" step="0.01" min="0" max="1"
+                                       value="{{ "%.2f"|format(config.peso_rendimiento) }}" required>
+                                <div class="form-text">
+                                    Evaluación de notas y promedios del semestre actual
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="peso_asistencia" class="form-label">
+                                    Peso Asistencia
+                                    <small class="text-muted">(0.0 - 1.0)</small>
+                                </label>
+                                <input type="number" class="form-control" id="peso_asistencia" 
+                                       name="peso_asistencia" step="0.01" min="0" max="1"
+                                       value="{{ "%.2f"|format(config.peso_asistencia) }}" required>
+                                <div class="form-text">
+                                    Porcentaje de asistencia en el semestre actual
+                                </div>
+                            </div>
+
+                            <!-- NUEVO FACTOR: Distribución de Riesgo -->
+                            <div class="mb-3">
+                                <label for="peso_distribucion" class="form-label">
+                                    Peso Distribución de Riesgo
+                                    <small class="text-muted">(0.0 - 1.0)</small>
+                                </label>
+                                <input type="number" class="form-control" id="peso_distribucion" 
+                                       name="peso_distribucion" step="0.01" min="0" max="1"
+                                       value="{{ "%.2f"|format(config.peso_distribucion) }}" required>
+                                <div class="form-text">
+                                    Análisis de cuántos cursos individuales están en riesgo
+                                </div>
+                            </div>
+
+                            <!-- ELIMINADOS: peso_progreso y peso_historial -->
+
+                            <div class="alert alert-light">
+                                <strong>Total Pesos: </strong>
+                                <span id="total_pesos">{{ "%.2f"|format(config.peso_rendimiento + config.peso_asistencia + config.peso_distribucion) }}</span>
+                                <span id="pesos_status" class="badge ms-2"></span>
+                                <div class="form-text mt-1">
+                                    <small>Los tres factores deben sumar exactamente 1.0</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parámetros Académicos -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-graduation-cap"></i>
+                                Parámetros Académicos
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="nota_minima_aprobatoria" class="form-label">
+                                    Nota Mínima Aprobatoria
+                                    <small class="text-muted">(0 - 20)</small>
+                                </label>
+                                <input type="number" class="form-control" id="nota_minima_aprobatoria" 
+                                       name="nota_minima_aprobatoria" step="0.1" min="0" max="20"
+                                       value="{{ "%.1f"|format(config.nota_minima_aprobatoria) }}" required>
+                                <div class="form-text">
+                                    Nota mínima para considerar aprobado
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="porcentaje_asistencia_minimo" class="form-label">
+                                    Porcentaje Mínimo de Asistencia
+                                    <small class="text-muted">(0 - 100%)</small>
+                                </label>
+                                <input type="number" class="form-control" id="porcentaje_asistencia_minimo" 
+                                       name="porcentaje_asistencia_minimo" step="1" min="0" max="100"
+                                       value="{{ "%.0f"|format(config.porcentaje_asistencia_minimo) }}" required>
+                                <div class="form-text">
+                                    Porcentaje mínimo de asistencia requerido
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-calendar-alt"></i>
+                                Semestre
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="semestre_actual" class="form-label">Semestre Actual</label>
+                                <input type="text" class="form-control" id="semestre_actual" 
+                                       name="semestre_actual" value="{{ config.semestre_actual }}" required>
+                                <div class="form-text">
+                                    Formato: AÑO-NÚMERO (ej: 2024-1, 2024-2)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ url_for('admin.index') }}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Guardar Configuración
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ACTUALIZADO: Solo 3 factores
+    const pesos = ['peso_rendimiento', 'peso_asistencia', 'peso_distribucion'];
+    const totalPesosElement = document.getElementById('total_pesos');
+    const pesosStatusElement = document.getElementById('pesos_status');
+    
+    function calcularTotalPesos() {
+        let total = 0;
+        pesos.forEach(pesoId => {
+            const input = document.getElementById(pesoId);
+            if (input && input.value) {
+                total += parseFloat(input.value) || 0;
+            }
+        });
+        
+        totalPesosElement.textContent = total.toFixed(2);
+        
+        // Actualizar estado
+        if (Math.abs(total - 1.0) < 0.01) {
+            pesosStatusElement.textContent = '✅ Correcto';
+            pesosStatusElement.className = 'badge bg-success ms-2';
+        } else {
+            pesosStatusElement.textContent = '❌ Debe sumar 1.0';
+            pesosStatusElement.className = 'badge bg-danger ms-2';
+        }
+    }
+    
+    // Calcular inicialmente
+    calcularTotalPesos();
+    
+    // Recalcular cuando cambien los inputs
+    pesos.forEach(pesoId => {
+        const input = document.getElementById(pesoId);
+        if (input) {
+            input.addEventListener('input', calcularTotalPesos);
+        }
+    });
+});
+</script>
+{% endblock %}
+
+
+============================================================
+ARCHIVO: app\templates\admin\index.html
+============================================================
+
+{% extends "base.html" %}
+
+{% block title %}Administración - Sistema de Seguimiento{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Administración</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-cogs text-primary"></i>
+                Panel de Administración
+            </h2>
+            <span class="badge bg-cards2 text-dark">
+                <i class="fas fa-shield-alt"></i> Administrador
+            </span>
+        </div>
+
+        <!-- Tarjetas de Estadísticas -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-white bg-cards0">
+                    <div class="card-body text-center">
+                        <h3>{{ stats.total_usuarios }}</h3>
+                        <p class="mb-0">Usuarios Totales</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-cards text-white">
+                    <div class="card-body text-center">
+                        <h3>{{ stats.usuarios_activos }}</h3>
+                        <p class="mb-0">Usuarios Activos</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-cards2 text-white">
+                    <div class="card-body text-center">
+                        <h3>{{ stats.administradores }}</h3>
+                        <p class="mb-0">Administradores</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-cards3 text-dark">
+                    <div class="card-body text-center">
+                        <h3>{{ config.semestre_actual }}</h3>
+                        <p class="mb-0">Semestre Actual</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Módulos de Administración -->
+        <div class="row">
+            <!-- Configuración del Sistema -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-cards2 text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-sliders-h"></i>
+                            Configuración
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            Configure los parámetros del sistema, umbrales de riesgo, pesos de factores y semestres.
+                        </p>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success"></i> Umbrales de riesgo</li>
+                            <li><i class="fas fa-check text-success"></i> Pesos de factores</li>
+                            <li><i class="fas fa-check text-success"></i> Semestre actual</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{{ url_for('admin.configuracion') }}" class="btn btn-primary w-100 bg-cards2">
+                            <i class="fas fa-edit"></i> Gestionar Configuración
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gestión de Usuarios -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-cards text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-users-cog"></i>
+                            Gestión de Usuarios
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            Administre los usuarios del sistema, roles, permisos y estados de las cuentas.
+                        </p>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success"></i> Crear/editar usuarios</li>
+                            <li><i class="fas fa-check text-success"></i> Asignar roles</li>
+                            <li><i class="fas fa-check text-success"></i> Activar/desactivar</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{{ url_for('admin.usuarios') }}" class="btn btn-success w-100 bg-cards">
+                            <i class="fas fa-user-shield"></i> Gestionar Usuarios
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backup y Logs -->
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-cards2 text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-database"></i>
+                            Sistema y Logs
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            Monitoreo del sistema, logs de actividad, backup y mantenimiento.
+                        </p>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success"></i> Ver logs del sistema</li>
+                            <li><i class="fas fa-check text-success"></i> Backup de datos</li>
+                            <li><i class="fas fa-check text-success"></i> Monitoreo</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <a href="{{ url_for('admin.backup') }}" class="btn btn-info w-100 bg-cards2">
+                                    <i class="fas fa-save"></i> Backup
+                                </a>
+                            </div>
+                            <div class="col-6">
+                                <a href="{{ url_for('admin.logs') }}" class="btn btn-outline-info w-100">
+                                    <i class="fas fa-clipboard-list"></i> Logs
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuración Actual - ACTUALIZADO A 3 FACTORES -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle"></i>
+                    Configuración Actual del Sistema - Evaluación Intrasemestral
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Umbrales de Riesgo:</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Alerta Amarilla:</strong> > {{ "%.2f"|format(config.umbral_amarillo) }}</li>
+                            <li><strong>Alerta Roja:</strong> > {{ "%.2f"|format(config.umbral_rojo) }}</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Pesos de Factores (Semestre Actual):</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Rendimiento:</strong> {{ "%.0f"|format(config.peso_rendimiento * 100) }}%</li>
+                            <li><strong>Asistencia:</strong> {{ "%.0f"|format(config.peso_asistencia * 100) }}%</li>
+                            <li><strong>Distribución:</strong> {{ "%.0f"|format(config.peso_distribucion * 100) }}%</li>
+                            <!-- ELIMINADOS: Progreso e Historial -->
+                        </ul>
+                        <div class="mt-2 p-2 bg-light rounded">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i>
+                                Sistema optimizado para evaluación intrasemestral con 3 factores
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <h6>Parámetros Académicos:</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Nota Mínima Aprobatoria:</strong> {{ config.nota_minima_aprobatoria }}/20</li>
+                            <li><strong>Asistencia Mínima:</strong> {{ config.porcentaje_asistencia_minimo }}%</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Semestre:</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Semestre Actual:</strong> {{ config.semestre_actual }}</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Descripción de Factores -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h6>Factores de Evaluación:</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card border-primary">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-primary">
+                                            <i class="fas fa-chart-line"></i> Rendimiento
+                                        </h6>
+                                        <p class="card-text small mb-0">
+                                            Evaluación de notas y promedios del semestre actual
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card border-success">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-success">
+                                            <i class="fas fa-calendar-check"></i> Asistencia
+                                        </h6>
+                                        <p class="card-text small mb-0">
+                                            Porcentaje de asistencia en el semestre actual
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card border-info">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-info">
+                                            <i class="fas fa-project-diagram"></i> Distribución
+                                        </h6>
+                                        <p class="card-text small mb-0">
+                                            Análisis de cuántos cursos están en riesgo
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+============================================================
+ARCHIVO: app\templates\admin\logs.html
+============================================================
+
+{% extends "base.html" %}
+
+{% block title %}Logs - Sistema de Seguimiento{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Administración</a></li>
+        <li class="breadcrumb-item active">Logs</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-clipboard-list text-primary"></i>
+                Logs del Sistema
+            </h2>
+            <div>
+                <a href="{{ url_for('admin.index') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+                <button class="btn btn-outline-secondary" id="btn-refresh-logs">
+                    <i class="fas fa-sync-alt"></i> Actualizar
+                </button>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="filter_level" class="form-label">Nivel</label>
+                        <select class="form-select" id="filter_level">
+                            <option value="all">Todos los niveles</option>
+                            <option value="INFO">INFO</option>
+                            <option value="WARNING">WARNING</option>
+                            <option value="ERROR">ERROR</option>
+                            <option value="DEBUG">DEBUG</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filter_date" class="form-label">Fecha</label>
+                        <input type="date" class="form-control" id="filter_date">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="filter_search" class="form-label">Buscar</label>
+                        <input type="text" class="form-control" id="filter_search" placeholder="Buscar en logs...">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <button class="btn btn-primary w-100" id="btn-apply-filters">
+                            <i class="fas fa-filter"></i> Filtrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logs -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list"></i>
+                    Registros de Actividad
+                    <span class="badge bg-primary">{{ logs|length }}</span>
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if logs %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0" id="logs-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha/Hora</th>
+                                <th>Nivel</th>
+                                <th>Mensaje</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in logs %}
+                            <tr class="log-row" data-level="{{ log.nivel }}">
+                                <td class="text-nowrap">
+                                    <small>{{ log.fecha }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge 
+                                        {% if log.nivel == 'ERROR' %}bg-danger
+                                        {% elif log.nivel == 'WARNING' %}bg-warning text-dark
+                                        {% elif log.nivel == 'INFO' %}bg-info
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ log.nivel }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <small>{{ log.mensaje }}</small>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                    <h5>No hay logs disponibles</h5>
+                    <p class="text-muted">No se encontraron registros de actividad.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Estadísticas de Logs -->
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center py-3">
+                        <h4>{{ logs|selectattr('nivel', 'equalto', 'INFO')|list|length }}</h4>
+                        <p class="mb-0">INFO</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-dark">
+                    <div class="card-body text-center py-3">
+                        <h4>{{ logs|selectattr('nivel', 'equalto', 'WARNING')|list|length }}</h4>
+                        <p class="mb-0">WARNING</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-danger text-white">
+                    <div class="card-body text-center py-3">
+                        <h4>{{ logs|selectattr('nivel', 'equalto', 'ERROR')|list|length }}</h4>
+                        <p class="mb-0">ERROR</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-secondary text-white">
+                    <div class="card-body text-center py-3">
+                        <h4>{{ logs|length }}</h4>
+                        <p class="mb-0">TOTAL</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filtros de logs
+    document.getElementById('btn-apply-filters').addEventListener('click', function() {
+        const levelFilter = document.getElementById('filter_level').value;
+        const dateFilter = document.getElementById('filter_date').value;
+        const searchFilter = document.getElementById('filter_search').value.toLowerCase();
+        
+        document.querySelectorAll('.log-row').forEach(row => {
+            let show = true;
+            
+            // Filtrar por nivel
+            if (levelFilter !== 'all' && row.getAttribute('data-level') !== levelFilter) {
+                show = false;
+            }
+            
+            // Filtrar por búsqueda
+            if (searchFilter && !row.textContent.toLowerCase().includes(searchFilter)) {
+                show = false;
+            }
+            
+            // Filtrar por fecha (simplificado)
+            if (dateFilter) {
+                const rowDate = row.cells[0].textContent.trim().split(' ')[0];
+                if (rowDate !== dateFilter) {
+                    show = false;
+                }
+            }
+            
+            row.style.display = show ? '' : 'none';
+        });
+    });
+
+    // Actualizar logs
+    document.getElementById('btn-refresh-logs').addEventListener('click', function() {
+        const button = this;
+        const originalHtml = button.innerHTML;
+        
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        button.disabled = true;
+        
+        setTimeout(() => {
+            button.innerHTML = originalHtml;
+            button.disabled = false;
+            alert('Logs actualizados (simulación)');
+        }, 1000);
+    });
+
+    // Auto-actualizar cada 30 segundos (opcional)
+    // setInterval(() => {
+    //     document.getElementById('btn-refresh-logs').click();
+    // }, 30000);
+});
+</script>
+{% endblock %}
+

@@ -1,0 +1,725 @@
+PARTE: 19
+PROYECTO: SIGEA_DSI
+FECHA: 2025-11-11 09:49:28
+CARPETAS EXCLUIDAS: bootstrap, jquery, fontawesome, etc.
+================================================================================
+
+
+============================================================
+ARCHIVO: app\templates\reportes\vista_previa.html
+============================================================
+
+{% extends "base.html" %}
+
+{% block title %}Vista Previa - {{ titulo }}{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="no-print">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('reportes.index') }}">Reportes</a></li>
+        <li class="breadcrumb-item active">Vista Previa</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+            <h2>
+                <i class="fas fa-eye text-primary"></i>
+                Vista Previa del Reporte
+            </h2>
+            <div>
+                <a href="{{ url_for('reportes.index') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+                <button onclick="imprimirFormal()" class="btn btn-primary">
+                    <i class="fas fa-print"></i> Imprimir Formal
+                </button>
+                {% if reporte_id %}
+                <a href="{{ url_for('reportes.descargar', reporte_id=reporte_id) }}" class="btn btn-success">
+                    <i class="fas fa-download"></i> Descargar PDF
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Contenedor del reporte con clase para impresión -->
+        <div class="reporte-container" id="reporteContent">
+            <div class="card printable-card">
+                <div class="card-header bg-primary text-white printable-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line"></i> {{ titulo }}
+                    </h5>
+                </div>
+                <div class="card-body printable-content">
+                    <!-- Contenido del reporte -->
+                    {{ contenido|safe }}
+                </div>
+                <div class="card-footer text-muted printable-footer no-print">
+                    <small>Generado el {{ fecha_generacion }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    /* ESTILOS PARA VISTA WEB */
+    .printable-card {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .printable-header {
+        border-radius: 8px 8px 0 0 !important;
+        padding: 15px 20px;
+    }
+    
+    .printable-content {
+        padding: 25px;
+        background: #fff;
+    }
+    
+    .printable-footer {
+        background: #f8f9fa;
+        border-top: 1px solid #dee2e6;
+        border-radius: 0 0 8px 8px;
+    }
+
+    /* ESTILOS PROFESIONALES PARA IMPRESIÓN */
+    @media print {
+        /* Ocultar elementos no deseados */
+        .no-print, .breadcrumb, .btn, .card-footer, 
+        .navbar, .sidebar, .page-header {
+            display: none !important;
+        }
+        
+        /* Resetear estilos para impresión */
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: white !important;
+            font-family: "Times New Roman", Times, serif !important;
+            font-size: 12pt !important;
+            line-height: 1.4 !important;
+            color: black !important;
+        }
+        
+        .container, .container-fluid {
+            width: 100% !important;
+            max-width: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        .row, .col-12 {
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+        }
+        
+        /* Estilos para el reporte impreso */
+        .printable-card {
+            border: none !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            page-break-inside: avoid;
+        }
+        
+        .printable-header {
+            background: #2c3e50 !important;
+            color: white !important;
+            padding: 15px 0 !important;
+            text-align: center !important;
+            border-bottom: 2px solid #34495e !important;
+            margin-bottom: 20px !important;
+        }
+        
+        .printable-header h5 {
+            font-size: 16pt !important;
+            margin: 0 !important;
+            font-weight: bold !important;
+        }
+        
+        .printable-content {
+            padding: 0 !important;
+            margin: 0 !important;
+            background: white !important;
+        }
+        
+        /* Mejoras para tablas en impresión */
+        table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            margin: 15px 0 !important;
+            font-size: 10pt !important;
+            page-break-inside: avoid;
+        }
+        
+        th, td {
+            border: 1px solid #000 !important;
+            padding: 6px 8px !important;
+            text-align: left !important;
+        }
+        
+        th {
+            background-color: #f0f0f0 !important;
+            font-weight: bold !important;
+        }
+        
+        /* Mejoras para textos */
+        h1, h2, h3, h4, h5, h6 {
+            color: #000 !important;
+            page-break-after: avoid;
+        }
+        
+        h1 { font-size: 16pt !important; }
+        h2 { font-size: 14pt !important; }
+        h3 { font-size: 12pt !important; }
+        
+        /* Control de saltos de página */
+        .page-break {
+            page-break-before: always;
+        }
+        
+        .no-break {
+            page-break-inside: avoid;
+        }
+        
+        /* Encabezado y pie de página para impresión */
+        @page {
+            margin: 1cm;
+            size: A4;
+            
+            @top-left {
+                content: "Sistema de Seguimiento Estudiantil";
+                font-size: 9pt;
+                color: #666;
+            }
+            
+            @bottom-right {
+                content: "Página " counter(page) " de " counter(pages);
+                font-size: 9pt;
+                color: #666;
+            }
+        }
+        
+        /* Estilos específicos para alertas */
+        .alerta-roja { 
+            color: #000 !important; 
+            font-weight: bold !important;
+            background-color: #ffebee !important;
+        }
+        
+        .alerta-amarilla { 
+            color: #000 !important; 
+            font-weight: bold !important;
+            background-color: #fff8e1 !important;
+        }
+        
+        .sin-riesgo { 
+            color: #000 !important; 
+            font-weight: bold !important;
+            background-color: #e8f5e8 !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function imprimirFormal() {
+        // Agregar clase temporal para impresión
+        document.body.classList.add('printing');
+        
+        // Esperar un momento para que se apliquen los estilos
+        setTimeout(() => {
+            window.print();
+            
+            // Remover clase después de imprimir
+            setTimeout(() => {
+                document.body.classList.remove('printing');
+            }, 500);
+        }, 100);
+    }
+    
+    // Mejorar la experiencia de impresión
+    window.addEventListener('beforeprint', function() {
+        // Preparar contenido para impresión
+        console.log('Preparando para impresión...');
+    });
+    
+    window.addEventListener('afterprint', function() {
+        // Restaurar después de imprimir
+        console.log('Impresión completada');
+    });
+</script>
+{% endblock %}
+
+
+============================================================
+ARCHIVO: app\templates\seguimiento\index.html
+============================================================
+
+{% extends "base.html" %}
+{% block title %}Seguimiento - Sistema de Seguimiento{% endblock %}
+{% block content %} 
+    <link rel="stylesheet" href="{{ url_for('static', filename='seguimiento/seguimiento.css') }}" />
+
+    <div class="container mt-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Seguimiento de Riesgo</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        Seguimiento de Riesgo Académico
+                    </h2>
+                    <a href="{{ url_for('seguimiento.resultados') }}" class="btn btn-outline-primary text-light bg-cards">
+                        <i class="fas fa-list"></i> Ver Resultados
+                    </a>
+                </div>
+
+                <!-- Tarjeta de Cálculo Automático -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary2 text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-calculator"></i>
+                            Cálculo Automático de Riesgo
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            Ejecute el cálculo automático de riesgo académico para todos los estudiantes activos.
+                            El sistema evaluará: rendimiento académico, asistencia y distribución de riesgo entre cursos.
+                        </p>
+                        
+                        <form method="POST" action="{{ url_for('seguimiento.calcular_riesgo') }}">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="semestre" class="form-label">Semestre a Evaluar</label>
+                                        <select class="form-select" id="semestre" name="semestre" required>
+                                            <!-- CORRECCIÓN: Semestres actualizados -->
+                                            <option value="2025-1" selected>2025-1</option>
+                                            <option value="2025-2">2025-2</option>
+                                            <option value="2026-1">2026-1</option>
+                                            <option value="2026-2">2026-2</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">&nbsp;</label>
+                                        <div>
+                                            <button type="submit" class="btn btn-primary btn-lg w-100 bg-cards" 
+                                                    onclick="return confirm('¿Está seguro de ejecutar el cálculo de riesgo? Esto puede tomar algunos minutos.')">
+                                                <i class="fas fa-play-circle"></i>
+                                                Ejecutar Cálculo de Riesgo
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- Factores de Evaluación - CORREGIDOS -->
+                        <div class="mt-4">
+                            <h6 class="text-muted">Factores de Evaluación:</h6>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card border-0 bg-light">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-graduation-cap text-primary fa-2x mb-2"></i>
+                                            <h6>Rendimiento Académico</h6>
+                                            <small class="text-muted">40% del puntaje</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-0 bg-light">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-calendar-check text-success fa-2x mb-2"></i>
+                                            <h6>Asistencia</h6>
+                                            <small class="text-muted">30% del puntaje</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-0 bg-light">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-chart-pie text-info fa-2x mb-2"></i>
+                                            <h6>Distribución de Riesgo</h6>
+                                            <small class="text-muted">30% del puntaje</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de Categorías - CORREGIDOS UMBRALES -->
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card border-success">
+                            <div class="card-body text-center">
+                                <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                                <h5 class="text-success">Sin Riesgo</h5>
+                                <p class="text-muted mb-1">Puntaje: 0.0 - 0.49</p>
+                                <small class="text-muted">Desempeño académico satisfactorio</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-warning">
+                            <div class="card-body text-center">
+                                <i class="fas fa-exclamation-triangle text-warning fa-3x mb-3"></i>
+                                <h5 class="text-warning">Alerta Amarilla</h5>
+                                <p class="text-muted mb-1">Puntaje: 0.5 - 0.69</p>
+                                <small class="text-muted">Riesgo académico moderado</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-danger">
+                            <div class="card-body text-center">
+                                <i class="fas fa-times-circle text-danger fa-3x mb-3"></i>
+                                <h5 class="text-danger">Alerta Roja</h5>
+                                <p class="text-muted mb-1">Puntaje: 0.7 - 1.0</p>
+                                <small class="text-muted">Riesgo académico crítico</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
+
+
+============================================================
+ARCHIVO: app\templates\seguimiento\resultados.html
+============================================================
+
+{% extends "base.html" %}
+{% block title %}Resultados - Sistema de Seguimiento{% endblock %}
+{% block content %} 
+    <link rel="stylesheet" href="{{ url_for('static', filename='seguimiento/seguimiento.css') }}" />
+    <div class="container mt-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('seguimiento.index') }}">Seguimiento</a></li>
+                <li class="breadcrumb-item active">Resultados</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        
+                        Resultados del Cálculo de Riesgo
+                    </h2>
+                    <a href="{{ url_for('seguimiento.index') }}" class="btn btn-primary bg-cards">
+                        <i class="fas fa-arrow-left"></i> Volver al Cálculo
+                    </a>
+                </div>
+
+                <!-- Estadísticas -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-verde text-white">
+                            <div class="card-body text-center">
+                                <h3>{{ estadisticas.get('SIN_RIESGO', 0) }}</h3>
+                                <p class="mb-0">Sin Riesgo</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-ama text-dark">
+                            <div class="card-body text-center">
+                                <h3>{{ estadisticas.get('ALERTA_AMARILLA', 0) }}</h3>
+                                <p class="mb-0">Alerta Ambar</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-rojo text-white">
+                            <div class="card-body text-center">
+                                <h3>{{ estadisticas.get('ALERTA_ROJA', 0) }}</h3>
+                                <p class="mb-0">Alerta Roja</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-celeste text-white">
+                            <div class="card-body text-center">
+                                <h3>{{ estadisticas.get('SIN_RIESGO', 0) + estadisticas.get('ALERTA_AMARILLA', 0) + estadisticas.get('ALERTA_ROJA', 0) }}</h3>
+                                <p class="mb-0">Total Evaluados</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Últimos Cálculos -->
+                <div class="card">
+                    <div class="card-header bg-cards text-light">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-history"></i>
+                            Últimos Cálculos de Riesgo
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if ultimos_seguimientos %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Estudiante</th>
+                                        <th>Semestre</th>
+                                        <th>Categoría</th>
+                                        <th>Puntaje</th>
+                                        <th>Fecha Evaluación</th>
+                                        <th>Factores</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for seguimiento in ultimos_seguimientos %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ seguimiento.estudiante.codigo_estudiante }}</strong><br>
+                                            <small>{{ seguimiento.estudiante.nombres }} {{ seguimiento.estudiante.apellidos }}</small>
+                                        </td>
+                                        <td>{{ seguimiento.semestre }}</td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if seguimiento.categoria_riesgo == 'ALERTA_ROJA' %}bg-danger
+                                                {% elif seguimiento.categoria_riesgo == 'ALERTA_AMARILLA' %}bg-warning
+                                                {% else %}bg-success{% endif %}">
+                                                {{ seguimiento.categoria_riesgo.replace('_', ' ') }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <strong>{{ "%.2f"|format(seguimiento.puntaje_riesgo) }}</strong>
+                                        </td>
+                                        <td>
+                                            {{ seguimiento.fecha_evaluacion.strftime('%d/%m/%Y %H:%M') }}
+                                        </td>
+                                        <td>
+                                            {% if seguimiento.factores_riesgo %}
+                                            <button class="btn btn-sm btn-outline-info" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#factoresModal{{ seguimiento.id }}">
+                                                <i class="fas fa-info-circle"></i> Ver
+                                            </button>
+                                            {% else %}
+                                            <span class="text-muted">No disponible</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('estudiantes.detalle', estudiante_id=seguimiento.estudiante.id) }}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i> Estudiante
+                                            </a>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Modal para Factores -->
+                                    {% if seguimiento.factores_riesgo %}
+                                    <div class="modal fade" id="factoresModal{{ seguimiento.id }}" tabindex="-1">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Factores de Riesgo</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="row">
+                                                        {% for factor in seguimiento.factores_riesgo %}
+                                                        <div class="col-md-6 mb-3">
+                                                            <div class="card">
+                                                                <div class="card-body">
+                                                                    <h6 class="card-title">{{ factor.nombre }}</h6>
+                                                                    <p class="card-text small">{{ factor.descripcion }}</p>
+                                                                    <div class="d-flex justify-content-between">
+                                                                        <small class="text-muted">Valor: {{ factor.valor }}</small>
+                                                                        <small class="text-muted">Peso: {{ (factor.peso * 100)|int }}%</small>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                    {% if seguimiento.observaciones %}
+                                                    <div class="mt-3">
+                                                        <h6>Recomendaciones:</h6>
+                                                        <p class="text-muted">{{ seguimiento.observaciones }}</p>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                            <h5>No hay cálculos de riesgo registrados</h5>
+                            <p class="text-muted">Ejecute el cálculo de riesgo para ver los resultados.</p>
+                            <a href="{{ url_for('seguimiento.index') }}" class="btn btn-primary">
+                                <i class="fas fa-calculator"></i> Ejecutar Cálculo
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
+
+
+============================================================
+ARCHIVO: migrations\env.py
+============================================================
+
+import logging
+from logging.config import fileConfig
+
+from flask import current_app
+
+from alembic import context
+
+# this is the Alembic Config object, which provides
+# access to the values within the .ini file in use.
+config = context.config
+
+# Interpret the config file for Python logging.
+# This line sets up loggers basically.
+fileConfig(config.config_file_name)
+logger = logging.getLogger('alembic.env')
+
+
+def get_engine():
+    try:
+        # this works with Flask-SQLAlchemy<3 and Alchemical
+        return current_app.extensions['migrate'].db.get_engine()
+    except (TypeError, AttributeError):
+        # this works with Flask-SQLAlchemy>=3
+        return current_app.extensions['migrate'].db.engine
+
+
+def get_engine_url():
+    try:
+        return get_engine().url.render_as_string(hide_password=False).replace(
+            '%', '%%')
+    except AttributeError:
+        return str(get_engine().url).replace('%', '%%')
+
+
+# add your model's MetaData object here
+# for 'autogenerate' support
+# from myapp import mymodel
+# target_metadata = mymodel.Base.metadata
+config.set_main_option('sqlalchemy.url', get_engine_url())
+target_db = current_app.extensions['migrate'].db
+
+# other values from the config, defined by the needs of env.py,
+# can be acquired:
+# my_important_option = config.get_main_option("my_important_option")
+# ... etc.
+
+
+def get_metadata():
+    if hasattr(target_db, 'metadatas'):
+        return target_db.metadatas[None]
+    return target_db.metadata
+
+
+def run_migrations_offline():
+    """Run migrations in 'offline' mode.
+
+    This configures the context with just a URL
+    and not an Engine, though an Engine is acceptable
+    here as well.  By skipping the Engine creation
+    we don't even need a DBAPI to be available.
+
+    Calls to context.execute() here emit the given string to the
+    script output.
+
+    """
+    url = config.get_main_option("sqlalchemy.url")
+    context.configure(
+        url=url, target_metadata=get_metadata(), literal_binds=True
+    )
+
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+def run_migrations_online():
+    """Run migrations in 'online' mode.
+
+    In this scenario we need to create an Engine
+    and associate a connection with the context.
+
+    """
+
+    # this callback is used to prevent an auto-migration from being generated
+    # when there are no changes to the schema
+    # reference: http://alembic.zzzcomputing.com/en/latest/cookbook.html
+    def process_revision_directives(context, revision, directives):
+        if getattr(config.cmd_opts, 'autogenerate', False):
+            script = directives[0]
+            if script.upgrade_ops.is_empty():
+                directives[:] = []
+                logger.info('No changes in schema detected.')
+
+    conf_args = current_app.extensions['migrate'].configure_args
+    if conf_args.get("process_revision_directives") is None:
+        conf_args["process_revision_directives"] = process_revision_directives
+
+    connectable = get_engine()
+
+    with connectable.connect() as connection:
+        context.configure(
+            connection=connection,
+            target_metadata=get_metadata(),
+            **conf_args
+        )
+
+        with context.begin_transaction():
+            context.run_migrations()
+
+
+if context.is_offline_mode():
+    run_migrations_offline()
+else:
+    run_migrations_online()
+
+

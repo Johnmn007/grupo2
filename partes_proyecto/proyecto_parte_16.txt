@@ -1,0 +1,596 @@
+PARTE: 16
+PROYECTO: SIGEA_DSI
+FECHA: 2025-11-11 09:49:28
+CARPETAS EXCLUIDAS: bootstrap, jquery, fontawesome, etc.
+================================================================================
+
+
+============================================================
+ARCHIVO: app\templates\importacion\resultados.html
+============================================================
+
+{% extends "base.html" %}
+{% block title %}Resultados - Sistema de Seguimiento{% endblock %}
+{% block content %} 
+   
+
+    <div class="container mt-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('importacion.index') }}">Importación</a></li>
+                <li class="breadcrumb-item active">Resultados</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        <i class="fas fa-clipboard-check text-dark"></i>
+                        Resultados de Importación
+                    </h2>
+                    <a href="{{ url_for('importacion.index') }}" class="btn btn-primary text-light bg-cards2">
+                        <i class="fas fa-arrow-left"></i> Volver a Importación
+                    </a>
+                </div>
+
+                <!-- Mensajes Flash -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Estadísticas Rápidas -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-cards0 text-white">
+                            <div class="card-body text-center">
+                                {% set total_estudiantes = estadisticas.estudiantes if estadisticas else 0 %}
+                                <h3>{{ total_estudiantes }}</h3>
+                                <p class="mb-0">Estudiantes</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-cards text-white">
+                            <div class="card-body text-center">
+                                {% set total_cursos = estadisticas.cursos if estadisticas else 0 %}
+                                <h3>{{ total_cursos }}</h3>
+                                <p class="mb-0">Cursos</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-cards2 text-white">
+                            <div class="card-body text-center">
+                                {% set total_notas = estadisticas.notas if estadisticas else 0 %}
+                                <h3>{{ total_notas }}</h3>
+                                <p class="mb-0">Notas</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-cards3 text-dark">
+                            <div class="card-body text-center">
+                                {% set total_riesgo = estadisticas.riesgo if estadisticas else 0 %}
+                                <h3>{{ total_riesgo }}</h3>
+                                <p class="mb-0">En Riesgo</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información -->
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                        <h4>Proceso de Importación Completado</h4>
+                        <p class="text-muted">
+                            Los datos han sido importados exitosamente al sistema.
+                            Ahora puede proceder a ejecutar el cálculo de riesgo académico.
+                        </p>
+                        <div class="d-flex justify-content-center gap-3 mt-4">
+                            <a href="{{ url_for('estudiantes.index') }}" class="btn btn-primary bg-cards2">
+                                <i class="fas fa-users"></i> Ver Estudiantes
+                            </a>
+                            <a href="{{ url_for('seguimiento.index') }}" class="btn btn-primary bg-cards">
+                                <i class="fas fa-calculator"></i> Calcular Riesgo
+                            </a>
+                            <a href="{{ url_for('importacion.index') }}" class="btn btn-primary bg-cards0">
+                                <i class="fas fa-file-import"></i> Nueva Importación
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+ {% endblock %}
+
+
+============================================================
+ARCHIVO: app\templates\inscripciones\crear.html
+============================================================
+
+{% extends "base.html" %}
+
+{% block title %}Crear Inscripción - Sistema de Seguimiento{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('inscripciones.index') }}">Inscripciones</a></li>
+        <li class="breadcrumb-item active">Crear Inscripción</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-user-plus text-dark"></i>
+                Crear Nueva Inscripción
+            </h2>
+            <a href="{{ url_for('inscripciones.index') }}" class="btn btn-outline-primary text-light bg-cards">
+                <i class="fas fa-arrow-left"></i> Volver a la lista
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-header text-white bg-cards">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle"></i>
+                    Información de la Inscripción
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('inscripciones.crear') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.estudiante_id.label(class="form-label") }}
+                                {{ form.estudiante_id(class="form-select") }}
+                                {% if form.estudiante_id.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.estudiante_id.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Seleccione el estudiante a inscribir</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.curso_id.label(class="form-label") }}
+                                {{ form.curso_id(class="form-select") }}
+                                {% if form.curso_id.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.curso_id.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Seleccione el curso</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.fecha_inscripcion.label(class="form-label") }}
+                                {{ form.fecha_inscripcion(class="form-control", type="date") }}
+                                {% if form.fecha_inscripcion.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.fecha_inscripcion.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.estado.label(class="form-label") }}
+                                {{ form.estado(class="form-select") }}
+                                {% if form.estado.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.estado.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('inscripciones.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+============================================================
+ARCHIVO: app\templates\inscripciones\detalle.html
+============================================================
+
+{% extends "base.html" %}
+
+{% block title %}Inscripción #{{ inscripcion.id }} - Sistema de Seguimiento{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('inscripciones.index') }}">Inscripciones</a></li>
+        <li class="breadcrumb-item active">Inscripción #{{ inscripcion.id }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-clipboard-list text-primary"></i>
+                Detalle de Inscripción
+            </h2>
+            <div>
+                <a href="{{ url_for('inscripciones.editar', inscripcion_id=inscripcion.id) }}" class="btn btn-warning me-2">
+                    <i class="fas fa-edit"></i> Editar Inscripción
+                </a>
+                <form method="POST" action="{{ url_for('inscripciones.eliminar', inscripcion_id=inscripcion.id) }}" 
+                      class="d-inline" onsubmit="return confirm('¿Está seguro de eliminar esta inscripción?');">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Eliminar Inscripción
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Información de la Inscripción -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-info-circle"></i>
+                            Información de la Inscripción
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-sm-4 fw-bold">Estudiante:</div>
+                            <div class="col-sm-8">
+                                <a href="{{ url_for('estudiantes.detalle', estudiante_id=inscripcion.estudiante.id) }}">
+                                    {{ inscripcion.estudiante.nombres }} {{ inscripcion.estudiante.apellidos }}
+                                </a><br>
+                                <small class="text-muted">{{ inscripcion.estudiante.codigo_estudiante }}</small>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4 fw-bold">Curso:</div>
+                            <div class="col-sm-8">
+                                <a href="{{ url_for('cursos.detalle', curso_id=inscripcion.curso.id) }}">
+                                    {{ inscripcion.curso.nombre_curso }}
+                                </a><br>
+                                <small class="text-muted">{{ inscripcion.curso.codigo_curso }} - {{ inscripcion.curso.semestre }}</small>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4 fw-bold">Fecha Inscripción:</div>
+                            <div class="col-sm-8">{{ inscripcion.fecha_inscripcion.strftime('%d/%m/%Y') }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4 fw-bold">Estado:</div>
+                            <div class="col-sm-8">
+                                <span class="badge 
+                                    {% if inscripcion.estado == 'ACTIVO' %}bg-success
+                                    {% elif inscripcion.estado == 'APROBADO' %}bg-primary
+                                    {% elif inscripcion.estado == 'REPROBADO' %}bg-danger
+                                    {% elif inscripcion.estado == 'RETIRADO' %}bg-warning
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ inscripcion.estado }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estadísticas -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-bar"></i>
+                            Estadísticas Académicas
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h3>{{ "%.1f"|format(promedio_notas) }}</h3>
+                                <p class="text-muted mb-0">Promedio de Notas</p>
+                            </div>
+                            <div class="col-6">
+                                <h3>{{ "%.1f"|format(porcentaje_asistencia) }}%</h3>
+                                <p class="text-muted mb-0">Asistencia</p>
+                            </div>
+                        </div>
+                        <div class="row text-center mt-3">
+                            <div class="col-6">
+                                <h4>{{ total_asistencias }}</h4>
+                                <p class="text-muted mb-0">Total Clases</p>
+                            </div>
+                            <div class="col-6">
+                                <h4>{{ asistencias_presente }}</h4>
+                                <p class="text-muted mb-0">Asistencias</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notas -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-bar"></i>
+                            Notas del Estudiante
+                            <span class="badge bg-primary">{{ notas|length }}</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if notas %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Evaluación</th>
+                                        <th>Nota</th>
+                                        <th>Fecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for nota in notas %}
+                                    <tr>
+                                        <td>{{ nota.evaluacion.nombre_evaluacion }}</td>
+                                        <td>
+                                            <strong>{{ "%.1f"|format(nota.nota) }}</strong>/20
+                                        </td>
+                                        <td>{{ nota.fecha_registro.strftime('%d/%m/%Y') }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-chart-bar fa-2x mb-2"></i>
+                            <p>No hay notas registradas para esta inscripción</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Asistencias -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-calendar-check"></i>
+                            Registro de Asistencias
+                            <span class="badge bg-primary">{{ asistencias|length }}</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if asistencias %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Asistencia</th>
+                                        <th>Justificado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for asistencia in asistencias %}
+                                    <tr>
+                                        <td>{{ asistencia.fecha.strftime('%d/%m/%Y') }}</td>
+                                        <td>
+                                            {% if asistencia.presente %}
+                                            <span class="badge bg-success">Presente</span>
+                                            {% else %}
+                                            <span class="badge bg-danger">Ausente</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if asistencia.justificado %}
+                                            <span class="badge bg-warning text-dark">Sí</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">No</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-calendar-times fa-2x mb-2"></i>
+                            <p>No hay asistencias registradas para esta inscripción</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('inscripciones.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver a la lista
+                    </a>
+                    <a href="{{ url_for('inscripciones.crear') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Crear Nueva Inscripción
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+============================================================
+ARCHIVO: app\templates\inscripciones\editar.html
+============================================================
+
+{% extends "base.html" %}
+
+{% block title %}Editar Inscripción - Sistema de Seguimiento{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('inscripciones.index') }}">Inscripciones</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('inscripciones.detalle', inscripcion_id=inscripcion.id) }}">Inscripción #{{ inscripcion.id }}</a></li>
+        <li class="breadcrumb-item active">Editar</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-edit text-primary"></i>
+                Editar Inscripción
+            </h2>
+            <a href="{{ url_for('inscripciones.detalle', inscripcion_id=inscripcion.id) }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Volver al detalle
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit"></i>
+                    Editar Información de la Inscripción
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('inscripciones.editar', inscripcion_id=inscripcion.id) }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.estudiante_id.label(class="form-label") }}
+                                {{ form.estudiante_id(class="form-select") }}
+                                {% if form.estudiante_id.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.estudiante_id.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.curso_id.label(class="form-label") }}
+                                {{ form.curso_id(class="form-select") }}
+                                {% if form.curso_id.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.curso_id.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.fecha_inscripcion.label(class="form-label") }}
+                                {{ form.fecha_inscripcion(class="form-control", type="date") }}
+                                {% if form.fecha_inscripcion.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.fecha_inscripcion.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.estado.label(class="form-label") }}
+                                {{ form.estado(class="form-select") }}
+                                {% if form.estado.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.estado.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('inscripciones.detalle', inscripcion_id=inscripcion.id) }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <div>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save"></i> Actualizar Inscripción
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

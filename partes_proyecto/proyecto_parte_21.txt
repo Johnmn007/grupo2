@@ -1,0 +1,677 @@
+PARTE: 21
+PROYECTO: SIGEA_DSI
+FECHA: 2025-11-11 09:49:28
+CARPETAS EXCLUIDAS: bootstrap, jquery, fontawesome, etc.
+================================================================================
+
+
+============================================================
+ARCHIVO: partes_proyecto\proyecto_parte_01.txt
+============================================================
+
+PARTE: 01
+PROYECTO: SIGEA_DSI
+FECHA: 2025-11-11 09:49:28
+CARPETAS EXCLUIDAS: bootstrap, jquery, fontawesome, etc.
+================================================================================
+
+
+============================================================
+ARCHIVO: config.py
+============================================================
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+class Config:
+    SECRET_KEY = os.getenv("SECRET_KEY", "default_secret")
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+
+class DevelopmentConfig(Config):
+    SQLALCHEMY_DATABASE_URI = (
+        f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}"
+        f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT', '3306')}/{os.getenv('DB_NAME')}"
+    )
+    DEBUG = True
+
+
+class ProductionConfig(Config):
+    SECRET_KEY = os.getenv("PROD_SECRET_KEY", "fallback_prod_secret")
+    SQLALCHEMY_DATABASE_URI = (
+        f"mysql+pymysql://{os.getenv('PROD_DB_USER')}:{os.getenv('PROD_DB_PASSWORD')}"
+        f"@{os.getenv('PROD_DB_HOST')}:{os.getenv('PROD_DB_PORT', '3306')}/{os.getenv('PROD_DB_NAME')}"
+    )
+    DEBUG = False
+
+
+class TestingConfig(Config):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = os.getenv("TEST_DATABASE_URL", "sqlite:///test.db")
+
+
+config_by_name = {
+    "development": DevelopmentConfig,
+    "production": ProductionConfig,
+    "testing": TestingConfig,
+}
+
+
+============================================================
+ARCHIVO: config_sistema.json
+============================================================
+
+{
+  "umbral_amarillo": 0.5,
+  "umbral_rojo": 0.7,
+  "peso_rendimiento": 0.4,
+  "peso_asistencia": 0.3,
+  "peso_distribucion": 0.3,
+  "semestre_actual": "2025-1",
+  "nota_minima_aprobatoria": 12.0,
+  "porcentaje_asistencia_minimo": 70.0
+}
+
+
+============================================================
+ARCHIVO: consolidado_texto.py
+============================================================
+
+import os
+import datetime
+import shutil
+
+def es_archivo_texto(archivo):
+    extensiones_texto = ['.py', '.txt', '.md', '.html', '.css', '.js', '.json', '.xml', '.yaml', '.yml', '.php', '.java', '.c', '.cpp', '.h', '.cs', '.sql', '.ts', '.jsx', '.tsx', '.vue']
+    return any(archivo.lower().endswith(ext) for ext in extensiones_texto)
+
+def deberia_excluir_carpeta(ruta_carpeta):
+    """Define qué carpetas excluir"""
+    carpetas_excluir = [
+        '__pycache__', 'venv', '.git', 'node_modules', '.vscode',
+        'bootstrap', 'bootstrap5', 'bootstrap-5',  # Bootstrap
+        'jquery', 'jquery-ui',  # jQuery
+        'fontawesome', 'fonts',  # Fuentes
+        'dist', 'build',  # Carpetas de build
+        'logs', 'temp', 'tmp',  # Temporales
+        '.idea', '__pycache__', '.pytest_cache'  # IDE y cache
+    ]
+    
+    nombre_carpeta = os.path.basename(ruta_carpeta).lower()
+    return nombre_carpeta in carpetas_excluir
+
+def deberia_excluir_archivo(nombre_archivo):
+    """Define qué archivos excluir"""
+    archivos_excluir = [
+        'package-lock.json', 'yarn.lock',  # Lock files
+        '.DS_Store', 'thumbs.db',  # Archivos del sistema
+        '*.min.js', '*.min.css',
+        'rojo.py','amarillo.py','verde.py'  # Archivos minificados
+    ]
+    
+    nombre_archivo_lower = nombre_archivo.lower()
+    
+    # Excluir por nombre exacto
+    if nombre_archivo_lower in archivos_excluir:
+        return True
+    
+    # Excluir por patrón
+    for patron in archivos_excluir:
+        if '*' in patron and nombre_archivo_lower.endswith(patron.replace('*', '')):
+            return True
+    
+    return False
+
+# OPCIÓN 1: Archivo único consolidado
+def generar_archivo_texto_consolidado(ruta_origen, ruta_destino_txt):
+    with open(ruta_destino_txt, 'w', encoding='utf-8') as archivo_txt:
+        archivo_txt.write(f"PROYECTO: {os.path.basename(ruta_origen)}\n")
+        archivo_txt.write(f"FECHA: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        archivo_txt.write("CARPETAS EXCLUIDAS: bootstrap, jquery, fontawesome, node_modules, etc.\n")
+        archivo_txt.write("=" * 80 + "\n\n")
+        
+        for root, dirs, files in os.walk(ruta_origen):
+            # Excluir carpetas no deseadas
+            dirs[:] = [d for d in dirs if not deberia_excluir_carpeta(os.path.join(root, d))]
+            
+            # Excluir archivos no deseados
+            files = [f for f in files if not deberia_excluir_archivo(f) and not f.lower().startswith('readme')]
+            
+            for archivo in files:
+                archivo_completo = os.path.join(root, archivo)
+                
+                if es_archivo_texto(archivo):
+                    ruta_relativa = os.path.relpath(archivo_completo, ruta_origen)
+                    
+                    try:
+                        with open(archivo_completo, 'r', encoding='utf-8') as f:
+                            contenido = f.read()
+                        
+                        archivo_txt.write(f"\n{'='*60}\n")
+                        archivo_txt.write(f"ARCHIVO: {ruta_relativa}\n")
+                        archivo_txt.write(f"{'='*60}\n\n")
+                        archivo_txt.write(contenido)
+                        archivo_txt.write("\n\n")
+                        
+                    except Exception as e:
+                        print(f"Error leyendo {ruta_relativa}: {e}")
+    
+    print(f"✓ Archivo único generado: {ruta_destino_txt}")
+
+# OPCIÓN 2: Estructura de carpetas
+def generar_estructura_txt(ruta_origen, ruta_destino_base):
+    if os.path.exists(ruta_destino_base):
+        shutil.rmtree(ruta_destino_base)
+    os.makedirs(ruta_destino_base)
+    
+    archivos_procesados = 0
+    
+    for root, dirs, files in os.walk(ruta_origen):
+        # Excluir carpetas
+        dirs[:] = [d for d in dirs if not deberia_excluir_carpeta(os.path.join(root, d))]
+        
+        for archivo in files:
+            if (not es_archivo_texto(archivo) or 
+                deberia_excluir_archivo(archivo) or 
+                archivo.lower().startswith('readme')):
+                continue
+                
+            archivo_completo = os.path.join(root, archivo)
+            ruta_relativa = os.path.relpath(archivo_completo, ruta_origen)
+            
+            archivo_destino = os.path.join(ruta_destino_base, ruta_relativa + '.txt')
+            directorio_destino = os.path.dirname(archivo_destino)
+            
+            if not os.path.exists(directorio_destino):
+                os.makedirs(directorio_destino)
+            
+            try:
+                with open(archivo_completo, 'r', encoding='utf-8') as f_origen:
+                    contenido = f_origen.read()
+                
+                with open(archivo_destino, 'w', encoding='utf-8') as f_destino:
+                    f_destino.write(contenido)
+                
+                archivos_procesados += 1
+                
+            except Exception as e:
+                print(f"Error procesando {ruta_relativa}: {e}")
+    
+    print(f"✓ Estructura generada: {ruta_destino_base}")
+    print(f"✓ Archivos procesados: {archivos_procesados}")
+
+# OPCIÓN 3: Archivos divididos (RECOMENDADO)
+def generar_archivos_divididos(ruta_origen, ruta_destino_base, max_lineas=1000):
+    if not os.path.exists(ruta_destino_base):
+        os.makedirs(ruta_destino_base)
+    
+    archivo_actual = None
+    contador_archivos = 1
+    lineas_actuales = 0
+    
+    for root, dirs, files in os.walk(ruta_origen):
+        # Excluir carpetas
+        dirs[:] = [d for d in dirs if not deberia_excluir_carpeta(os.path.join(root, d))]
+        
+        # Excluir archivos
+        files = [f for f in files if not deberia_excluir_archivo(f) and not f.lower().startswith('readme')]
+        
+        for archivo in files:
+            archivo_completo = os.path.join(root, archivo)
+            
+            if es_archivo_texto(archivo):
+                ruta_relativa = os.path.relpath(archivo_completo, ruta_origen)
+                
+                try:
+                    with open(archivo_completo, 'r', encoding='utf-8') as f:
+                        contenido = f.read()
+                    
+                    lineas_archivo = contenido.count('\n') + 1
+                    
+                    if archivo_actual is None or lineas_actuales + lineas_archivo > max_lineas:
+                        if archivo_actual:
+                            archivo_actual.close()
+                        
+                        nombre_archivo = f"proyecto_parte_{contador_archivos:02d}.txt"
+                        ruta_archivo = os.path.join(ruta_destino_base, nombre_archivo)
+                        archivo_actual = open(ruta_archivo, 'w', encoding='utf-8')
+                        
+                        archivo_actual.write(f"PARTE: {contador_archivos:02d}\n")
+                        archivo_actual.write(f"PROYECTO: {os.path.basename(ruta_origen)}\n")
+                        archivo_actual.write(f"FECHA: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                        archivo_actual.write("CARPETAS EXCLUIDAS: bootstrap, jquery, fontawesome, etc.\n")
+                        archivo_actual.write("=" * 80 + "\n\n")
+                        
+                        contador_archivos += 1
+                        lineas_actuales = 5
+                    
+                    archivo_actual.write(f"\n{'='*60}\n")
+                    archivo_actual.write(f"ARCHIVO: {ruta_relativa}\n")
+                    archivo_actual.write(f"{'='*60}\n\n")
+                    archivo_actual.write(contenido)
+                    archivo_actual.write("\n\n")
+                    
+                    lineas_actuales += lineas_archivo + 5
+                    
+                except Exception as e:
+                    print(f"Error procesando {ruta_relativa}: {e}")
+    
+    if archivo_actual:
+        archivo_actual.close()
+    
+    print(f"✓ Archivos divididos generados en: {ruta_destino_base}")
+    print(f"✓ Total de partes: {contador_archivos - 1}")
+
+# CONFIGURACIÓN - MODIFICA ESTAS RUTAS:
+ruta_proyecto = 'D:/SIGEA_DSI'  # Tu proyecto aquí
+
+# ELIGE UNA OPCIÓN (quita el # para usar):
+
+# Opción 1: Un solo archivo
+# generar_archivo_texto_consolidado(ruta_proyecto, 'D:/SIGEA_DSI/proyecto_completo.txt')
+
+# Opción 2: Estructura de carpetas  
+# generar_estructura_txt(ruta_proyecto, 'D:/SIGEA_DSI/estructura_txt')
+
+# Opción 3: Archivos divididos (RECOMENDADO)
+generar_archivos_divididos(ruta_proyecto, 'D:/SIGEA_DSI/partes_proyecto', max_lineas=800)
+
+
+============================================================
+ARCHIVO: crear_usuarios.py
+============================================================
+
+# crear_usuarios.py
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from app import create_app
+from app.extensions import db
+from app.models import Usuario
+from werkzeug.security import generate_password_hash
+
+def crear_usuarios_iniciales():
+    app = create_app()
+    
+    with app.app_context():
+        print("👥 Creando usuarios iniciales...")
+        
+        # Verificar si ya existen usuarios
+        if Usuario.query.first():
+            print("⚠️  Ya existen usuarios en la base de datos.")
+            respuesta = input("¿Deseas crear usuarios adicionales? (s/n): ")
+            if respuesta.lower() != 's':
+                print("❌ Operación cancelada.")
+                return
+        
+        # Crear usuario Administrador
+        admin = Usuario(
+            username="admin",
+            email="admin@sades.edu",
+            password_hash=generate_password_hash("admin123"),
+            rol="administrador",
+            activo=True
+        )
+        
+        # Crear usuario Coordinador
+        coordinador = Usuario(
+            username="coordinador",
+            email="coordinador@sades.edu", 
+            password_hash=generate_password_hash("coord123"),
+            rol="coordinador",
+            activo=True
+        )
+        
+        # Crear usuario Docente
+        docente = Usuario(
+            username="docente",
+            email="docente@sades.edu",
+            password_hash=generate_password_hash("docente123"),
+            rol="docente",
+            activo=True
+        )
+        
+        # Agregar a la sesión y guardar
+        db.session.add(admin)
+        db.session.add(coordinador)
+        db.session.add(docente)
+        db.session.commit()
+        
+        print("✅ Usuarios creados exitosamente!")
+        print("\n🔑 CREDENCIALES DE ACCESO:")
+        print("   👑 ADMINISTRADOR")
+        print("      Usuario: admin")
+        print("      Contraseña: admin123")
+        print("      Email: admin@sades.edu")
+        print("      Acceso: Completo a todo el sistema")
+        
+        print("\n   🛡️  COORDINADOR")
+        print("      Usuario: coordinador") 
+        print("      Contraseña: coord123")
+        print("      Email: coordinador@sades.edu")
+        print("      Acceso: Gestión de estudiantes y cursos")
+        
+        print("\n   📚 DOCENTE")
+        print("      Usuario: docente")
+        print("      Contraseña: docente123")
+        print("      Email: docente@sades.edu")
+        print("      Acceso: Registro de notas y asistencias")
+        
+        print(f"\n📊 Total de usuarios creados: {Usuario.query.count()}")
+
+if __name__ == "__main__":
+    crear_usuarios_iniciales()
+
+
+============================================================
+ARCHIVO: directorio_completo.py
+============================================================
+
+import os
+
+# Definir la ruta raíz de la estructura de archivos proporcionada
+root_path = r'./venv/Lib/site-packages'
+
+# Función para recorrer y generar la estructura del árbol
+def generate_file_tree(start_path, indent=""):
+    tree = ""
+    # Listar archivos y carpetas en el directorio
+    try:
+        for item in os.listdir(start_path):
+            item_path = os.path.join(start_path, item)
+            if os.path.isdir(item_path):
+                tree += f"{indent}{item}/\n"  # Directorios
+                tree += generate_file_tree(item_path, indent + "    ")  # Recursión para subdirectorios
+            else:
+                tree += f"{indent}{item}\n"  # Archivos
+    except PermissionError:
+        tree += f"{indent}Permission Denied\n"
+    return tree
+
+# Generar y mostrar el árbol de archivos
+file_tree = generate_file_tree(root_path)
+print(file_tree)
+
+
+
+============================================================
+ARCHIVO: estructura_proyecto.txt
+============================================================
+
+.
+|-- README.md
+|-- __pycache__
+|   |                               `-- config.cpython-311.pyc
+|   |                               `-- config.cpython-312.pyc
+|   |                               `-- config.cpython-313.pyc
+|                                   `-- run.cpython-313.pyc
+|-- amarillo.py
+|-- app
+|   |                               `-- __init__.py
+|   |                               `-- __pycache__
+|   |   |                           `-- __init__.cpython-311.pyc
+|   |   |                           `-- __init__.cpython-312.pyc
+|   |   |                           `-- __init__.cpython-313.pyc
+|   |   |                           `-- extensions.cpython-311.pyc
+|   |   |                           `-- extensions.cpython-312.pyc
+|   |   |                           `-- extensions.cpython-313.pyc
+|   |   |                           `-- models.cpython-311.pyc
+|   |   |                           `-- models.cpython-312.pyc
+|   |                               `-- models.cpython-313.pyc
+|   |-- config_sistema.json
+|   |-- extensions.py
+|   |-- models.py
+|   |-- modules
+|   |   |                           `-- admin
+|   |   |                           `-- asistencias
+|   |   |                           `-- auth
+|   |   |                           `-- cursos
+|   |   |                           `-- dashboard
+|   |   |                           `-- estudiantes
+|   |   |                           `-- evaluaciones
+|   |   |                           `-- importacion
+|   |   |                           `-- inscripciones
+|   |   |                           `-- main
+|   |   |                           `-- reportes
+|   |                               `-- seguimiento
+|   |-- services
+|   |   |                           `-- __pycache__
+|   |   |                           `-- report_generator.py
+|   |   |                           `-- riesgo_calculator.py
+|   |                               `-- riesgo_calculator_v2.py
+|   |-- static
+|   |   |                           `-- auth
+|   |   |                           `-- base
+|   |   |                           `-- bootstrap
+|   |   |                           `-- dashboard
+|   |   |                           `-- img
+|   |   |                           `-- reports
+|   |                               `-- seguimiento
+|   `-- templates
+|       |                           `-- admin
+|       |                           `-- asistencias
+|       |                           `-- auth
+|       |                           `-- base.html
+|       |                           `-- cursos
+|       |                           `-- dashboard
+|       |                           `-- estudiantes
+|       |                           `-- evaluaciones
+|       |                           `-- importacion
+|       |                           `-- inscripciones
+|       |                           `-- reportes
+|                                   `-- seguimiento
+|-- config.py
+|-- config_sistema.json
+|-- crear_usuarios.py
+|-- directorio_completo.py
+|-- estructura_proyecto.txt
+|-- requirements.txt
+|-- rojo.py
+|-- run.py
+|-- venv
+|   |-- Include
+|   |    -- site
+|   |-- Lib
+|   |    -- site-packages
+|   |-- Scripts
+|   |   |      -- Activate.ps1
+|   |   |      -- activate
+|   |   |      -- activate.bat
+|   |   |      -- alembic.exe
+|   |   |      -- deactivate.bat
+|   |   |      -- dotenv.exe
+|   |   |      -- email_validator.exe
+|   |   |      -- f2py.exe
+|   |   |      -- flask.exe
+|   |   |      -- mako-render.exe
+|   |   |      -- numpy-config.exe
+|   |   |      -- pip.exe
+|   |   |      -- pip3.12.exe
+|   |   |      -- pip3.exe
+|   |   |      -- python.exe
+|   |   |      -- pythonw.exe
+|   |          -- virtualenv.exe
+|   `-- pyvenv.cfg
+`-- verde.py
+
+
+
+============================================================
+ARCHIVO: requirements.txt
+============================================================
+
+alembic==1.16.2
+blinker==1.9.0
+cffi==2.0.0
+click==8.2.1
+colorama==0.4.6
+cryptography==46.0.2
+distlib==0.3.9
+dnspython==2.8.0
+dotenv==0.9.9
+email-validator==2.0.0
+et_xmlfile==2.0.0
+filelock==3.18.0
+Flask==2.3.3
+Flask-Login==0.6.3
+Flask-Mail==0.9.1
+Flask-Migrate==4.0.5
+Flask-SQLAlchemy==3.0.5
+Flask-WTF==1.1.1
+greenlet==3.2.3
+idna==3.10
+itsdangerous==2.2.0
+Jinja2==3.1.6
+Mako==1.3.10
+MarkupSafe==3.0.2
+numpy==2.3.3
+openpyxl==3.1.5
+pandas==2.3.3
+pdfkit==1.0.0
+platformdirs==4.3.8
+pycparser==2.23
+PyMySQL==1.1.2
+python-dateutil==2.9.0.post0
+python-dotenv==1.0.0
+pytz==2025.2
+six==1.17.0
+SQLAlchemy==2.0.41
+typing_extensions==4.14.0
+tzdata==2025.2
+virtualenv==20.31.2
+Werkzeug==2.3.7
+wkhtmltopdf==0.2
+WTForms==3.2.1
+
+
+
+============================================================
+ARCHIVO: run.py
+============================================================
+
+from app import create_app
+
+app=create_app()
+
+if __name__=='__main__':
+    app.run(debug=True)
+
+
+============================================================
+ARCHIVO: todo_pdf.py
+============================================================
+
+import os
+from fpdf import FPDF
+
+# Configuración de la clase PDF
+class PDF(FPDF):
+    def header(self):
+        self.set_font('Arial', 'B', 12)
+        self.cell(0, 10, 'Estructura de Proyecto', 0, 1, 'C')
+
+    def chapter_title(self, title):
+        self.set_font('Arial', 'B', 12)
+        self.cell(0, 10, title, 0, 1, 'L')
+
+    def chapter_body(self, body):
+        self.set_font('Arial', '', 10)
+        self.multi_cell(0, 10, body)
+
+# Función para filtrar caracteres no soportados
+def filtrar_caracteres_no_soportados(texto):
+    return ''.join([char if ord(char) < 256 else '?' for char in texto])
+
+# Función para verificar si un archivo es de texto
+def es_archivo_texto(archivo):
+    # Lista de extensiones de archivos que se consideran de texto
+    extensiones_texto = ['.py', '.txt', '.md', '.html', '.css', '.js']
+    # Filtrar archivos que no sean de texto (por ejemplo, .pyd, .exe, .dll)
+    return any(archivo.lower().endswith(ext) for ext in extensiones_texto)
+
+# Función para recorrer los archivos y generar el PDF
+def copiar_archivos_y_generar_pdf(ruta_origen, pdf):
+    for root, dirs, files in os.walk(ruta_origen):
+        # Excluir carpetas __pycache__ y directorios como 'venv'
+        dirs[:] = [d for d in dirs if d != '__pycache__' and d != 'venv']
+        
+        # Excluir archivos README
+        files = [f for f in files if f.lower() != 'readme' and not f.lower().startswith('readme.')]
+
+        # Ruta relativa de la carpeta actual
+        ruta_relativa = os.path.relpath(root, ruta_origen)
+        pdf.chapter_title(ruta_relativa)
+
+        for archivo in files:
+            archivo_origen = os.path.join(root, archivo)
+
+            # Verificar si el archivo es de texto antes de intentar leerlo
+            if es_archivo_texto(archivo):
+                pdf.chapter_title(archivo)
+                try:
+                    with open(archivo_origen, 'r', encoding='utf-8') as f:
+                        contenido = f.read()
+                    # Filtrar caracteres no soportados
+                    contenido = filtrar_caracteres_no_soportados(contenido)
+                    pdf.chapter_body(contenido)
+                except Exception as e:
+                    print(f"Error al leer el archivo {archivo_origen}: {e}")
+
+# Función principal
+def generar_pdf_proyecto(ruta_origen, ruta_destino_pdf):
+    pdf = PDF()
+    pdf.add_page()
+
+    copiar_archivos_y_generar_pdf(ruta_origen, pdf)
+
+    # Asegúrate de que la carpeta de destino exista
+    destino_carpeta = os.path.dirname(ruta_destino_pdf)
+    if not os.path.exists(destino_carpeta):
+        os.makedirs(destino_carpeta)
+
+    # Guardar el archivo PDF generado
+    pdf.output(ruta_destino_pdf)
+    print(f"PDF generado exitosamente en {ruta_destino_pdf}")
+
+# Uso
+ruta_origen = 'D:/SIGEA_DSI'  # Ruta de tu proyecto
+ruta_destino_pdf = 'D:/SIGEA_DSI/copia_proyecto.pdf'  # Ruta para el PDF
+generar_pdf_proyecto(ruta_origen, ruta_destino_pdf)
+
+
+
+============================================================
+ARCHIVO: app\config_sistema.json
+============================================================
+
+{
+    "umbral_amarillo": 0.5,
+    "umbral_rojo": 0.7,
+    "peso_rendimiento": 0.5,
+    "peso_asistencia": 0.3,
+    "peso_distribucion": 0.2,
+    "semestre_actual": "2025-1",
+    "nota_minima_aprobatoria": 13.0,
+    "porcentaje_asistencia_minimo": 70.0
+}
+
+
+============================================================
+ARCHIVO: app\extensions.py
+============================================================
+
+# app/extensions.py
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from flask_login import LoginManager
+
+db = SQLAlchemy()
+migrate = Migrate()
+login_manager = LoginManager()
+
+
+

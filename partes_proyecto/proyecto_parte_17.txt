@@ -1,0 +1,716 @@
+PARTE: 17
+PROYECTO: SIGEA_DSI
+FECHA: 2025-11-11 09:49:28
+CARPETAS EXCLUIDAS: bootstrap, jquery, fontawesome, etc.
+================================================================================
+
+
+============================================================
+ARCHIVO: app\templates\inscripciones\index.html
+============================================================
+
+{% extends "base.html" %}
+
+{% block title %}Inscripciones - Sistema de Seguimiento{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Inscripciones</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-clipboard-list text-dark"></i>
+                Gestión de Inscripciones
+            </h2>
+            <a href="{{ url_for('inscripciones.crear') }}" class="btn btn-primary bg-cards">
+                <i class="fas fa-plus"></i>
+                Nueva Inscripción
+            </a>
+            <a href="{{ url_for('inscripciones.matricula_masiva') }}" class="btn btn-success me-2 bg-cards2">
+            <i class="fas fa-users"></i> Matrícula Masiva
+        </a>
+        </div>
+
+        <!-- Filtros -->
+        <div class="card mb-4">
+            <div class="card-header bg-cards text-light">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-filter"></i>
+                    Filtros
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('inscripciones.index') }}">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="estudiante_id" class="form-label">Estudiante</label>
+                                <select class="form-select" id="estudiante_id" name="estudiante_id">
+                                    <option value="">Todos los estudiantes</option>
+                                    {% for estudiante in estudiantes %}
+                                    <option value="{{ estudiante.id }}" {% if estudiante_id == estudiante.id %}selected{% endif %}>
+                                        {{ estudiante.codigo_estudiante }} - {{ estudiante.nombres }} {{ estudiante.apellidos }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="curso_id" class="form-label">Curso</label>
+                                <select class="form-select" id="curso_id" name="curso_id">
+                                    <option value="">Todos los cursos</option>
+                                    {% for curso in cursos %}
+                                    <option value="{{ curso.id }}" {% if curso_id == curso.id %}selected{% endif %}>
+                                        {{ curso.codigo_curso }} - {{ curso.nombre_curso }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="estado" class="form-label">Estado</label>
+                                <select class="form-select" id="estado" name="estado">
+                                    <option value="">Todos los estados</option>
+                                    <option value="ACTIVO" {% if estado == 'ACTIVO' %}selected{% endif %}>Activo</option>
+                                    <option value="INACTIVO" {% if estado == 'INACTIVO' %}selected{% endif %}>Inactivo</option>
+                                    <option value="RETIRADO" {% if estado == 'RETIRADO' %}selected{% endif %}>Retirado</option>
+                                    <option value="APROBADO" {% if estado == 'APROBADO' %}selected{% endif %}>Aprobado</option>
+                                    <option value="REPROBADO" {% if estado == 'REPROBADO' %}selected{% endif %}>Reprobado</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="search" class="form-label">Búsqueda</label>
+                                <input type="text" class="form-control" id="search" name="search" 
+                                       value="{{ search }}" placeholder="Buscar...">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary bg-cards">
+                            <i class="fas fa-filter"></i> Aplicar Filtros
+                        </button>
+                        <a href="{{ url_for('inscripciones.index') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i> Limpiar Filtros
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tabla de inscripciones -->
+        <div class="card">
+            <div class="card-header text-light bg-cards">
+                <h5 class="card-title mb-0">
+                    Lista de Inscripciones
+                    <span class="badge bg-cards2">{{ inscripciones.total }}</span>
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if inscripciones.items %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Estudiante</th>
+                                <th>Curso</th>
+                                <th>Semestre</th>
+                                <th>Fecha Inscripción</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for inscripcion in inscripciones.items %}
+                            <tr>
+                                <td>
+                                    <strong>{{ inscripcion.estudiante.codigo_estudiante }}</strong><br>
+                                    <small>{{ inscripcion.estudiante.nombres }} {{ inscripcion.estudiante.apellidos }}</small>
+                                </td>
+                                <td>
+                                    <strong>{{ inscripcion.curso.codigo_curso }}</strong><br>
+                                    <small>{{ inscripcion.curso.nombre_curso }}</small>
+                                </td>
+                                <td>{{ inscripcion.curso.semestre }}</td>
+                                <td>{{ inscripcion.fecha_inscripcion.strftime('%d/%m/%Y') }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if inscripcion.estado == 'ACTIVO' %}bg-success
+                                        {% elif inscripcion.estado == 'APROBADO' %}bg-primary
+                                        {% elif inscripcion.estado == 'REPROBADO' %}bg-danger
+                                        {% elif inscripcion.estado == 'RETIRADO' %}bg-warning
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ inscripcion.estado }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('inscripciones.detalle', inscripcion_id=inscripcion.id) }}"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> Ver
+                                        </a>
+                                        <a href="{{ url_for('inscripciones.editar', inscripcion_id=inscripcion.id) }}"
+                                           class="btn btn-sm btn-outline-warning">
+                                            <i class="fas fa-edit"></i> Editar
+                                        </a>
+                                        <form method="POST" action="{{ url_for('inscripciones.eliminar', inscripcion_id=inscripcion.id) }}" 
+                                              class="d-inline" onsubmit="return confirm('¿Está seguro de eliminar esta inscripción?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-trash"></i> Eliminar
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                    <h5>No se encontraron inscripciones</h5>
+                    <p class="text-muted">
+                        {% if search or estudiante_id or curso_id or estado %}
+                        No hay resultados con los filtros aplicados
+                        {% else %}
+                        No hay inscripciones registradas en el sistema
+                        {% endif %}
+                    </p>
+                    <a href="{{ url_for('inscripciones.crear') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Crear Primera Inscripción
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Paginación -->
+            {% if inscripciones.pages > 1 %}
+            <div class="card-footer">
+                <nav aria-label="Paginación">
+                    <ul class="pagination justify-content-center mb-0">
+                        {% for page_num in inscripciones.iter_pages() %}
+                        {% if page_num %}
+                        <li class="page-item {% if page_num == inscripciones.page %}active{% endif %}">
+                            <a class="page-link"
+                               href="{{ url_for('inscripciones.index', page=page_num, search=search, estudiante_id=estudiante_id, curso_id=curso_id, estado=estado) }}">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+============================================================
+ARCHIVO: app\templates\inscripciones\matricula_masiva.html
+============================================================
+
+<!-- app/templates/inscripciones/matricula_masiva.html -->
+{% extends "base.html" %}
+
+{% block title %}Matrícula Masiva - Sistema de Seguimiento{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('inscripciones.index') }}">Inscripciones</a></li>
+        <li class="breadcrumb-item active">Matrícula Masiva</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-users text-dark"></i>
+                Matrícula Masiva por Semestre
+            </h2>
+            <a href="{{ url_for('inscripciones.index') }}" class="btn btn-outline-primary text-light bg-cards">
+                <i class="fas fa-arrow-left"></i> Volver a Inscripciones
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-cards text-light">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cog"></i>
+                    Configurar Matrícula Masiva
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('inscripciones.matricula_masiva') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.semestre.label(class="form-label") }}
+                                {{ form.semestre(class="form-select") }}  <!-- ✅ CORREGIDO -->
+                                {% if form.semestre.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.semestre.errors %}  <!-- ✅ Cambiado de ciclo_id a semestre -->
+                                    <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                <div class="form-text">Seleccione el semestre académico</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.grupo_estudiantes.label(class="form-label") }}
+                                {{ form.grupo_estudiantes(class="form-select") }}
+                                {% if form.grupo_estudiantes.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.grupo_estudiantes.errors %}
+                                    <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.fecha_inscripcion.label(class="form-label") }}
+                                {{ form.fecha_inscripcion(class="form-control", type="date") }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.estado.label(class="form-label") }}
+                                {{ form.estado(class="form-select") }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Información:</strong> Esta acción matriculará a los estudiantes seleccionados 
+                        en <strong>todos los cursos</strong> del semestre elegido.  <!-- ✅ Cambiado de ciclo a semestre -->
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('inscripciones.index') }}" class="btn btn-primary bg-cards">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-success bg-cards2" 
+                                onclick="return confirm('¿Está seguro de realizar la matrícula masiva?')">
+                            <i class="fas fa-users"></i> Ejecutar Matrícula Masiva
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+============================================================
+ARCHIVO: app\templates\reportes\general.html
+============================================================
+
+{% extends "base.html" %}
+
+{% block title %}Reporte General - Sistema de Seguimiento{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('reportes.index') }}">Reportes</a></li>
+        <li class="breadcrumb-item active">General</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-users text-dark"></i>
+                Reporte General de Riesgo
+            </h2>
+            <a href="{{ url_for('reportes.index') }}" class="btn btn-outline-primary bg-cards text-light">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-cards2">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cog"></i>
+                    Configurar Reporte General
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('reportes.generar_general') }}">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="semestre" class="form-label">Semestre</label>
+                                <input type="text" class="form-control" id="semestre" name="semestre" 
+                                       placeholder="Ej: 2025-1" value="{{ config.semestre_actual if config }}">
+                                <div class="form-text">Dejar vacío para usar el semestre actual</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="categoria_filtro" class="form-label">Filtrar por Categoría</label>
+                                <select class="form-select" id="categoria_filtro" name="categoria_filtro">
+                                    <option value="TODOS">Todas las Categorías</option>
+                                    <option value="SIN_RIESGO">Sin Riesgo</option>
+                                    <option value="ALERTA_AMARILLA">Alerta Amarilla</option>
+                                    <option value="ALERTA_ROJA">Alerta Roja</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="formato" class="form-label">Formato de Salida</label>
+                                <select class="form-select" id="formato" name="formato" required>
+                                    <option value="html">Vista Previa (HTML)</option>
+                                    <option value="pdf">Documento PDF</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Información:</strong> El reporte general incluirá estadísticas 
+                        consolidadas y listado de estudiantes según los filtros seleccionados.
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-primary text-light bg-cards">
+                            <i class="fas fa-play-circle"></i> Generar Reporte General
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+============================================================
+ARCHIVO: app\templates\reportes\general_riesgo.html
+============================================================
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte General de Riesgo Académico</title>
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            .container { width: 100% !important; }
+            .card { border: none !important; box-shadow: none !important; }
+        }
+        
+        body { font-family: 'Arial', sans-serif; line-height: 1.6; }
+        .header { border-bottom: 3px solid #2c3e50; padding-bottom: 20px; margin-bottom: 30px; }
+        .logo { max-width: 150px; }
+        .institucion { color: #2c3e50; font-weight: bold; }
+        .badge-riesgo { font-size: 1.1em; padding: 8px 15px; }
+        .table-condensed td, .table-condensed th { padding: 8px; }
+        .estadisticas-card { margin-bottom: 20px; }
+        .resumen-estadisticas { background-color: #f8f9fa; padding: 20px; border-radius: 5px; }
+        
+        .firmas-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 80px;
+            page-break-inside: avoid;
+        }
+        .firma {
+            text-align: center;
+            width: 45%;
+        }
+        .firma-linea {
+            border-top: 1px solid #000;
+            margin: 50px 0 10px 0;
+            width: 100%;
+        }
+        .firma-texto {
+            font-size: 12px;
+            margin-top: 5px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Encabezado -->
+        <div class="header text-center">
+            <table width="100%">
+                <tr>
+                    <td width="20%">
+                        <img src="{{ url_for('static', filename='img/logo_see_f.png', _external=True) }}" 
+                             alt="Logo" class="logo" style="max-width: 120px;">
+                    </td>
+                    <td width="60%" class="text-center">
+                        <h2 class="institucion">Sistema de Seguimiento Estudiantil</h2>
+                        <h4>Reporte General de Riesgo Académico</h4>
+                        <p class="text-muted">Generado el: {{ fecha_generacion }}</p>
+                    </td>
+                    <td width="20%" class="text-end">
+                        <small>Semestre: {{ semestre }}</small>
+                        {% if categoria_filtro != 'TODOS' %}
+                        <br><small>Filtro: {{ categoria_filtro.replace('_', ' ') }}</small>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Resumen Estadístico -->
+        <div class="resumen-estadisticas mb-4">
+            <div class="row text-center">
+                <div class="col-md-3">
+                    <div class="estadisticas-card">
+                        <h3 class="text-primary">{{ estadisticas.total_estudiantes }}</h3>
+                        <p class="text-muted">Total Estudiantes</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="estadisticas-card">
+                        <h3 class="text-warning">{{ estadisticas.total_riesgo }}</h3>
+                        <p class="text-muted">En Riesgo</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="estadisticas-card">
+                        <h3 class="text-success">{{ "%.1f"|format(estadisticas.porcentaje_riesgo) }}%</h3>
+                        <p class="text-muted">Porcentaje en Riesgo</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="estadisticas-card">
+                        <h3 class="text-info">{{ estadisticas.total_estudiantes - estadisticas.total_riesgo }}</h3>
+                        <p class="text-muted">Sin Riesgo</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Distribución por Categorías -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie"></i>
+                    Distribución por Categorías de Riesgo
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <div class="mb-3">
+                            <span class="badge bg-success badge-riesgo">SIN RIESGO</span>
+                            <h4 class="mt-2">{{ estadisticas.categorias.get('SIN_RIESGO', 0) }}</h4>
+                            <p class="text-muted">Estudiantes</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="mb-3">
+                            <span class="badge bg-warning text-dark badge-riesgo">ALERTA AMARILLA</span>
+                            <h4 class="mt-2">{{ estadisticas.categorias.get('ALERTA_AMARILLA', 0) }}</h4>
+                            <p class="text-muted">Estudiantes</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="mb-3">
+                            <span class="badge bg-danger badge-riesgo">ALERTA ROJA</span>
+                            <h4 class="mt-2">{{ estadisticas.categorias.get('ALERTA_ROJA', 0) }}</h4>
+                            <p class="text-muted">Estudiantes</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Listado de Estudiantes -->
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list"></i>
+                    Listado de Estudiantes en Riesgo Académico
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if estudiantes_riesgo %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-condensed">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Código</th>
+                                <th>Estudiante</th>
+                                <th>Categoría</th>
+                                <th>Puntaje</th>
+                                <th>Email</th>
+                                <th>Teléfono</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for estudiante, seguimiento in estudiantes_riesgo %}
+                            <tr>
+                                <td><strong>{{ estudiante.codigo_estudiante }}</strong></td>
+                                <td>{{ estudiante.nombres }} {{ estudiante.apellidos }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if seguimiento.categoria_riesgo == 'ALERTA_ROJA' %}bg-danger
+                                        {% elif seguimiento.categoria_riesgo == 'ALERTA_AMARILLA' %}bg-warning text-dark
+                                        {% else %}bg-success{% endif %}">
+                                        {{ seguimiento.categoria_riesgo.replace('_', ' ') }}
+                                    </span>
+                                </td>
+                                <td><strong>{{ "%.2f"|format(seguimiento.puntaje_riesgo) }}</strong></td>
+                                <td>{{ estudiante.email }}</td>
+                                <td>{{ estudiante.telefono or 'No registrado' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-success text-center">
+                    <i class="fas fa-check-circle fa-2x mb-3"></i>
+                    <h5>¡Excelentes noticias!</h5>
+                    <p class="mb-0">No hay estudiantes en riesgo académico con los filtros seleccionados.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Análisis y Recomendaciones -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-line"></i>
+                    Análisis y Recomendaciones Institucionales
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Análisis de la Situación:</h6>
+                        <ul>
+                            {% if estadisticas.total_riesgo > 0 %}
+                                <li>El {{ "%.1f"|format(estadisticas.porcentaje_riesgo) }}% de los estudiantes requieren atención académica</li>
+                                {% if estadisticas.categorias.get('ALERTA_ROJA', 0) > 0 %}
+                                <li>Existen {{ estadisticas.categorias.get('ALERTA_ROJA', 0) }} estudiantes en situación crítica que requieren intervención inmediata</li>
+                                {% endif %}
+                                {% if estadisticas.categorias.get('ALERTA_AMARILLA', 0) > 0 %}
+                                <li>{{ estadisticas.categorias.get('ALERTA_AMARILLA', 0) }} estudiantes presentan riesgo moderado y necesitan seguimiento</li>
+                                {% endif %}
+                            {% else %}
+                                <li>La situación académica general es favorable</li>
+                                <li>No se detectaron estudiantes en riesgo con los criterios actuales</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Recomendaciones:</h6>
+                        <ul>
+                            {% if estadisticas.categorias.get('ALERTA_ROJA', 0) > 0 %}
+                            <li><strong>Prioridad 1:</strong> Intervención inmediata para estudiantes en alerta roja</li>
+                            <li><strong>Prioridad 2:</strong> Seguimiento quincenal para alerta amarilla</li>
+                            {% elif estadisticas.categorias.get('ALERTA_AMARILLA', 0) > 0 %}
+                            <li><strong>Acción:</strong> Implementar plan de seguimiento para estudiantes en alerta amarilla</li>
+                            <li><strong>Prevención:</strong> Reforzar estrategias de apoyo académico</li>
+                            {% else %}
+                            <li><strong>Mantenimiento:</strong> Continuar con las estrategias de apoyo actuales</li>
+                            <li><strong>Prevención:</strong> Monitoreo proactivo para detectar cambios tempranos</li>
+                            {% endif %}
+                            <li><strong>General:</strong> Revisar periódicamente los umbrales de riesgo</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del Reporte -->
+        <div class="card">
+            <div class="card-header bg-light">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-info-circle"></i>
+                    Información del Reporte
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Semestre analizado:</strong> {{ semestre }}</p>
+                        <p><strong>Fecha de generación:</strong> {{ fecha_generacion }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Total de estudiantes analizados:</strong> {{ estadisticas.total_estudiantes }}</p>
+                        <p><strong>Criterios de evaluación:</strong> Rendimiento, Asistencia, Distribución de riesgo</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Firmas -->
+        <div class="firmas-container">
+            <div class="firma">
+                <div class="firma-linea"></div>
+                <div class="firma-texto">Coordinador Académico</div>
+                <div class="firma-texto">Nombre y Firma</div>
+            </div>
+            <div class="firma">
+                <div class="firma-linea"></div>
+                <div class="firma-texto">Director de Programa</div>
+                <div class="firma-texto">Nombre y Firma</div>
+            </div>
+        </div>
+
+        <!-- Pie -->
+        <div class="text-center mt-4 no-print">
+            <small class="text-muted">
+                Reporte generado por el Sistema de Seguimiento Estudiantil - {{ fecha_generacion }}
+            </small>
+            <br>
+            <button onclick="window.print()" class="btn btn-primary btn-sm mt-2">
+                <i class="fas fa-print"></i> Imprimir Reporte
+            </button>
+        </div>
+    </div>
+</body>
+</html>
+
+

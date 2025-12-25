@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Sistema analitico de desempeño estudiantil{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item active">Dashboard</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">
+           
+            Panel de Control
+        </h2>
+        
+        <!-- Tarjetas de Estadísticas -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-light bg-cards0 ">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between ">
+                            <div>
+                                <h4>{{ total_estudiantes }}</h4>
+                                <p class="mb-0">Estudiantes Activos</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-users fa-2x icon_tarj2"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card text-dark bg-cards">
+                    <div class="card-body">
+                        <div class="d-flex text-dark justify-content-between">
+                            <div>
+                                <h4>{{ total_cursos }}</h4>
+                                <p class="mb-0">Cursos Activos</p>
+                            </div>
+                            <div class="align-self-center text-dark">
+                                <i class="fas fa-book fa-2x icon_tarj"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- <div class="col-md-3">
+                <div class="card text-dark ">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between text-dark">
+                            <div>
+                                <h4>{{ estudiantes_riesgo }}</h4>
+                                <p class="mb-0">En Riesgo Académico</p>
+                            </div>
+                            <div class="align-self-center ">
+                                <i class="fas fa-exclamation-triangle fa-2x icon_tarj"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div> -->
+            
+            <div class="col-md-3">
+                <div class="card text-light bg-cards0 ">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4>{{ total_estudiantes + total_cursos }}</h4>
+                                <p class="mb-0">Total Registros</p>
+                            </div>
+                            <div class="align-self-center icon_tarj2">
+                                <i class="fas fa-database fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-success">
+                    <div class="card-header text-dark ">
+                        <h5 class="card-title mb-0">
+                            
+                            Acciones Rápidas
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('estudiantes.index') }}" class="btn btn-dark bg-light w-100 text-dark">
+                                    <i class="fas fa-users text-success fs-3"></i><br>
+                                    Ver Estudiantes
+                                </a>
+                            </div>
+                            <!-- <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('estudiantes.en_riesgo') }}" class="btn btn-dark bg-light w-100 text-dark">
+                                    <i class="fas fa-exclamation-triangle"></i><br>
+                                    Estudiantes en Riesgo
+                                </a>
+                            </div> -->
+                            <!-- <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('seguimiento.index') }}"class="btn btn-dark bg-light w-100 text-dark">
+                                    <i class="fas fa-calculator"></i><br>
+                                    Calcular Riesgo
+                                </a>
+                            </div> -->
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('importacion.index') }}" class="btn btn-dark bg-light w-100 text-dark">
+                                    <i class="fas fa-file-import text-primary fs-3"></i><br>
+                                    Importar Datos
+                                </a>
+                            </div>
+                            <!-- En la sección de Acciones Rápidas, agregar: -->
+<div class="col-md-3 mb-3">
+    <a href="{{ url_for('cursos.index') }}" class="btn btn-dark w-100 text-dark bg-light">
+        <i class="fas fa-book text-warning fs-3"></i><br>
+        Ver Cursos
+    </a>
+</div>
+<!-- En la sección de Acciones Rápidas, agregar: -->
+<div class="col-md-3 mb-3">
+    <a href="{{ url_for('inscripciones.index') }}" class="btn btn-dark bg-light w-100 text-dark">
+        <i class="fas fa-clipboard-list text-info fs-3"></i><br>
+        Ver Inscripciones
+    </a>
+</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensaje de Bienvenida -->
+        <div class="card">
+            <div class="card-body">
+                <h4>Bienvenido, {{ current_user.username }}</h4>
+                <p class="lead">Sistema de Seguimiento y Acompañamiento para Estudiantes en Riesgo</p>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Función del Sistema:</strong> Detectar estudiantes en riesgo académico 
+                    basándose en asistencias y calificaciones, categorizándolos en tres niveles: 
+                    Sin Riesgo, Alerta Ambar y Alerta Roja.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+ <link rel="stylesheet" href="{{ url_for('static', filename='base/base_verde.css') }}" />
+{% endblock %}

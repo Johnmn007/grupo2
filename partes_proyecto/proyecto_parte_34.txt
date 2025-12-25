@@ -1,0 +1,809 @@
+PARTE: 34
+PROYECTO: SIGEA_DSI
+FECHA: 2025-11-11 09:49:28
+CARPETAS EXCLUIDAS: bootstrap, jquery, fontawesome, etc.
+================================================================================
+
+
+============================================================
+ARCHIVO: partes_proyecto\proyecto_parte_14.txt
+============================================================
+
+PARTE: 14
+PROYECTO: SIGEA_DSI
+FECHA: 2025-11-11 09:49:28
+CARPETAS EXCLUIDAS: bootstrap, jquery, fontawesome, etc.
+================================================================================
+
+
+============================================================
+ARCHIVO: app\templates\estudiantes\index.html
+============================================================
+
+{% extends "base.html" %}
+{% block title %}Estudiantes - Sistema de Seguimiento{% endblock %}
+
+
+{% block content %}
+
+
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard/dash.css') }}">
+
+ <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+                
+                <li class="breadcrumb-item active">Estudiantes</li>
+            </ol>
+        </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>
+                        <i class="fas fa-users"></i>
+                        Gestión de Estudiantes
+                    </h2>
+                    <a href="{{ url_for('estudiantes.en_riesgo') }}" class="btn btn-info bg-cards2">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Ver Estudiantes en Riesgo
+                    </a>
+
+                      <!-- BOTÓN NUEVO: Crear Estudiante -->
+        <a href="{{ url_for('estudiantes.crear') }}" class="btn btn-primary bg-azul">
+            <i class="fas fa-plus"></i>
+            Nuevo Estudiante
+        </a>
+                </div>
+
+                <!-- Barra de búsqueda -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <form method="GET" action="{{ url_for('estudiantes.index') }}">
+                            <div class="input-group">
+                                <input type="text" class="form-control" 
+                                       name="search" value="{{ search }}"
+                                       placeholder="Buscar por nombre, apellido o código...">
+                                <button class="btn btn-primary bg-azul" type="submit">
+                                    <i class="fas fa-search"></i> Buscar
+                                </button>
+                                {% if search %}
+                                <a href="{{ url_for('estudiantes.index') }}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i> Limpiar
+                                </a>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Tabla de estudiantes -->
+                <div class="card">
+                    <div class="card-header bg-cards text-light">
+                        <h5 class="card-title mb-0">
+                            Lista de Estudiantes
+                            <span class="badge bg-azul">{{ estudiantes.total }}</span>
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if estudiantes.items %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Nombre Completo</th>
+                                        <th>Email</th>
+                                        <th>Teléfono</th>
+                                        <th>Fecha Inscripción</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for estudiante in estudiantes.items %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ estudiante.codigo_estudiante }}</strong>
+                                        </td>
+                                        <td>
+                                            {{ estudiante.nombres }} {{ estudiante.apellidos }}
+                                        </td>
+                                        <td>{{ estudiante.email }}</td>
+                                        <td>{{ estudiante.telefono or 'No registrado' }}</td>
+                                        <td>{{ estudiante.fecha_inscripcion.strftime('%d/%m/%Y') }}</td>
+                                        
+                                        <!-- En la columna de Acciones de la tabla -->
+<td>
+    <div class="btn-group" role="group">
+        <a href="{{ url_for('estudiantes.detalle', estudiante_id=estudiante.id) }}"
+           class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-eye"></i> Ver
+        </a>
+        <!-- BOTÓN NUEVO: Editar -->
+        <a href="{{ url_for('estudiantes.editar', estudiante_id=estudiante.id) }}"
+           class="btn btn-sm btn-outline-warning">
+            <i class="fas fa-edit"></i> Editar
+        </a>
+        <!-- BOTÓN NUEVO: Eliminar -->
+        <form method="POST" action="{{ url_for('estudiantes.eliminar', estudiante_id=estudiante.id) }}" 
+              class="d-inline" onsubmit="return confirm('¿Está seguro de eliminar este estudiante?');">
+            <button type="submit" class="btn btn-sm btn-outline-danger">
+                <i class="fas fa-trash"></i> Eliminar
+            </button>
+        </form>
+    </div>
+</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <h5>No se encontraron estudiantes</h5>
+                            <p class="text-muted">
+                                {% if search %}
+                                No hay resultados para "{{ search }}"
+                                {% else %}
+                                No hay estudiantes registrados en el sistema
+                                {% endif %}
+                            </p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Paginación -->
+                    {% if estudiantes.pages > 1 %}
+                    <div class="card-footer">
+                        <nav aria-label="Paginación">
+                            <ul class="pagination justify-content-center mb-0">
+                                {% for page_num in estudiantes.iter_pages() %}
+                                    {% if page_num %}
+                                        <li class="page-item {% if page_num == estudiantes.page %}active{% endif %}">
+                                            <a class="page-link" 
+                                               href="{{ url_for('estudiantes.index', page=page_num, search=search) }}">
+                                                {{ page_num }}
+                                            </a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link">...</span>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </nav>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
+
+
+============================================================
+ARCHIVO: app\templates\evaluaciones\crear_evaluacion.html
+============================================================
+
+{% extends "base.html" %}
+
+{% block title %}Crear Evaluación - Sistema de Seguimiento{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('evaluaciones.index') }}">Evaluaciones</a></li>
+        <li class="breadcrumb-item active">Crear Evaluación</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-clipboard-check text-primary"></i>
+                Crear Nueva Evaluación
+            </h2>
+            <a href="{{ url_for('evaluaciones.index') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Volver a la lista
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle"></i>
+                    Información de la Evaluación
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('evaluaciones.crear_evaluacion') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.curso_id.label(class="form-label") }}
+                                {{ form.curso_id(class="form-select") }}
+                                {% if form.curso_id.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.curso_id.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Seleccione el curso para esta evaluación</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.tipo_evaluacion.label(class="form-label") }}
+                                {{ form.tipo_evaluacion(class="form-select") }}
+                                {% if form.tipo_evaluacion.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.tipo_evaluacion.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                {{ form.nombre_evaluacion.label(class="form-label") }}
+                                {{ form.nombre_evaluacion(class="form-control") }}
+                                {% if form.nombre_evaluacion.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.nombre_evaluacion.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Nombre descriptivo de la evaluación (ej: Parcial 1, Quiz Unidad 2)</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                {{ form.peso.label(class="form-label") }}
+                                {{ form.peso(class="form-control", type="number", step="0.1", min="0", max="100") }}
+                                {% if form.peso.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.peso.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Porcentaje que representa en la nota final</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.fecha_creacion.label(class="form-label") }}
+                                {{ form.fecha_creacion(class="form-control", type="date") }}
+                                {% if form.fecha_creacion.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.fecha_creacion.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('evaluaciones.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+============================================================
+ARCHIVO: app\templates\evaluaciones\crear_nota.html
+============================================================
+
+{% extends "base.html" %}
+
+{% block title %}Registrar Nota - Sistema de Seguimiento{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('evaluaciones.notas_index') }}">Notas</a></li>
+        <li class="breadcrumb-item active">Registrar Nota</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-plus-circle text-dark"></i>
+                Registrar Nueva Nota
+            </h2>
+            <a href="{{ url_for('evaluaciones.notas_index') }}" class="btn btn-outline-primary text-light bg-cards">
+                <i class="fas fa-arrow-left"></i> Volver a la lista
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-cards text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle"></i>
+                    Información de la Nota
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('evaluaciones.crear_nota') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.inscripcion_id.label(class="form-label") }}
+                                {{ form.inscripcion_id(class="form-select") }}
+                                {% if form.inscripcion_id.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.inscripcion_id.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Seleccione la inscripción (estudiante + curso)</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.evaluacion_id.label(class="form-label") }}
+                                {{ form.evaluacion_id(class="form-select") }}
+                                {% if form.evaluacion_id.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.evaluacion_id.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Seleccione la evaluación</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                {{ form.nota.label(class="form-label") }}
+                                {{ form.nota(class="form-control", type="number", step="0.1", min="0", max="20") }}
+                                {% if form.nota.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.nota.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Nota en escala de 0 a 20</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                {{ form.fecha_registro.label(class="form-label") }}
+                                {{ form.fecha_registro(class="form-control", type="date") }}
+                                {% if form.fecha_registro.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.fecha_registro.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.observaciones.label(class="form-label") }}
+                        {{ form.observaciones(class="form-control", rows="3") }}
+                        {% if form.observaciones.errors %}
+                            <div class="text-danger">
+                                {% for error in form.observaciones.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Observaciones opcionales sobre la nota</div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('evaluaciones.notas_index') }}" class="btn btn-success bg-cards2">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        {{ form.submit(class="btn btn-primary bg-cards") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+============================================================
+ARCHIVO: app\templates\evaluaciones\detalle_evaluacion.html
+============================================================
+
+{% extends "base.html" %}
+
+{% block title %}{{ evaluacion.nombre_evaluacion }} - Sistema de Seguimiento{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('evaluaciones.index') }}">Evaluaciones</a></li>
+        <li class="breadcrumb-item active">{{ evaluacion.nombre_evaluacion }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-clipboard-check text-primary"></i>
+                {{ evaluacion.nombre_evaluacion }}
+            </h2>
+            <div>
+                <a href="{{ url_for('evaluaciones.editar_evaluacion', evaluacion_id=evaluacion.id) }}" class="btn btn-warning me-2">
+                    <i class="fas fa-edit"></i> Editar Evaluación
+                </a>
+                <form method="POST" action="{{ url_for('evaluaciones.eliminar_evaluacion', evaluacion_id=evaluacion.id) }}" 
+                      class="d-inline" onsubmit="return confirm('¿Está seguro de eliminar esta evaluación?');">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Eliminar Evaluación
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Información de la Evaluación -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-info-circle"></i>
+                            Información de la Evaluación
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-sm-4 fw-bold">Nombre:</div>
+                            <div class="col-sm-8">{{ evaluacion.nombre_evaluacion }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4 fw-bold">Curso:</div>
+                            <div class="col-sm-8">
+                                <a href="{{ url_for('cursos.detalle', curso_id=evaluacion.curso.id) }}">
+                                    {{ evaluacion.curso.nombre_curso }}
+                                </a><br>
+                                <small class="text-muted">{{ evaluacion.curso.codigo_curso }} - {{ evaluacion.curso.semestre }}</small>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4 fw-bold">Tipo:</div>
+                            <div class="col-sm-8">
+                                <span class="badge bg-info">
+                                    {{ evaluacion.tipo_evaluacion.replace('_', ' ').title() }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4 fw-bold">Peso:</div>
+                            <div class="col-sm-8">
+                                <strong>{{ "%.1f"|format(evaluacion.peso) }}%</strong>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4 fw-bold">Fecha Creación:</div>
+                            <div class="col-sm-8">{{ evaluacion.fecha_creacion.strftime('%d/%m/%Y') }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estadísticas -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-bar"></i>
+                            Estadísticas de la Evaluación
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <h3>{{ total_notas }}</h3>
+                                <p class="text-muted mb-0">Notas Registradas</p>
+                            </div>
+                            <div class="col-4">
+                                <h3>{{ "%.1f"|format(promedio) }}</h3>
+                                <p class="text-muted mb-0">Promedio</p>
+                            </div>
+                            <div class="col-4">
+                                <h3>{{ "%.1f"|format(nota_maxima) }}</h3>
+                                <p class="text-muted mb-0">Nota Máxima</p>
+                            </div>
+                        </div>
+                        <div class="row text-center mt-3">
+                            <div class="col-6">
+                                <h4>{{ "%.1f"|format(nota_minima) }}</h4>
+                                <p class="text-muted mb-0">Nota Mínima</p>
+                            </div>
+                            <div class="col-6">
+                                <h4>{{ evaluacion.curso.inscripciones|length }}</h4>
+                                <p class="text-muted mb-0">Estudiantes Inscritos</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notas de la Evaluación -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list"></i>
+                    Notas de los Estudiantes
+                    <span class="badge bg-primary">{{ notas|length }}</span>
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if notas %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Estudiante</th>
+                                <th>Código</th>
+                                <th>Nota</th>
+                                <th>Fecha Registro</th>
+                                <th>Observaciones</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for nota in notas %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('estudiantes.detalle', estudiante_id=nota.inscripcion.estudiante.id) }}">
+                                        {{ nota.inscripcion.estudiante.nombres }} {{ nota.inscripcion.estudiante.apellidos }}
+                                    </a>
+                                </td>
+                                <td>{{ nota.inscripcion.estudiante.codigo_estudiante }}</td>
+                                <td>
+                                    <strong class="{% if nota.nota >= 12 %}text-success{% else %}text-danger{% endif %}">
+                                        {{ "%.1f"|format(nota.nota) }}/20
+                                    </strong>
+                                </td>
+                                <td>{{ nota.fecha_registro.strftime('%d/%m/%Y') }}</td>
+                                <td>
+                                    {% if nota.observaciones %}
+                                    <small class="text-muted">{{ nota.observaciones|truncate(30) }}</small>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('evaluaciones.editar_nota', nota_id=nota.id) }}"
+                                           class="btn btn-sm btn-outline-warning">
+                                            <i class="fas fa-edit"></i> Editar
+                                        </a>
+                                        <form method="POST" action="{{ url_for('evaluaciones.eliminar_nota', nota_id=nota.id) }}" 
+                                              class="d-inline" onsubmit="return confirm('¿Está seguro de eliminar esta nota?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-trash"></i> Eliminar
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                    <h5>No hay notas registradas para esta evaluación</h5>
+                    <p class="text-muted">Puede registrar notas usando el formulario de notas</p>
+                    <a href="{{ url_for('evaluaciones.crear_nota') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Registrar Primera Nota
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('evaluaciones.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver a la lista
+                    </a>
+                    <a href="{{ url_for('evaluaciones.crear_evaluacion') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Crear Nueva Evaluación
+                    </a>
+                    <a href="{{ url_for('evaluaciones.crear_nota') }}" class="btn btn-success">
+                        <i class="fas fa-plus-circle"></i> Registrar Nueva Nota
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+============================================================
+ARCHIVO: app\templates\evaluaciones\editar_evaluacion.html
+============================================================
+
+{% extends "base.html" %}
+
+{% block title %}Editar Evaluación - Sistema de Seguimiento{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('evaluaciones.index') }}">Evaluaciones</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('evaluaciones.detalle_evaluacion', evaluacion_id=evaluacion.id) }}">{{ evaluacion.nombre_evaluacion }}</a></li>
+        <li class="breadcrumb-item active">Editar</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-edit text-primary"></i>
+                Editar Evaluación
+            </h2>
+            <a href="{{ url_for('evaluaciones.detalle_evaluacion', evaluacion_id=evaluacion.id) }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Volver al detalle
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit"></i>
+                    Editar Información de la Evaluación
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('evaluaciones.editar_evaluacion', evaluacion_id=evaluacion.id) }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.curso_id.label(class="form-label") }}
+                                {{ form.curso_id(class="form-select") }}
+                                {% if form.curso_id.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.curso_id.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.tipo_evaluacion.label(class="form-label") }}
+                                {{ form.tipo_evaluacion(class="form-select") }}
+                                {% if form.tipo_evaluacion.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.tipo_evaluacion.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                {{ form.nombre_evaluacion.label(class="form-label") }}
+                                {{ form.nombre_evaluacion(class="form-control") }}
+                                {% if form.nombre_evaluacion.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.nombre_evaluacion.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                {{ form.peso.label(class="form-label") }}
+                                {{ form.peso(class="form-control", type="number", step="0.1", min="0", max="100") }}
+                                {% if form.peso.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.peso.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.fecha_creacion.label(class="form-label") }}
+                                {{ form.fecha_creacion(class="form-control", type="date") }}
+                                {% if form.fecha_creacion.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.fecha_creacion.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('evaluaciones.detalle_evaluacion', evaluacion_id=evaluacion.id) }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <div>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save"></i> Actualizar Evaluación
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+

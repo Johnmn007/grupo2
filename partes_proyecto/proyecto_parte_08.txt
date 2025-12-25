@@ -1,0 +1,681 @@
+PARTE: 08
+PROYECTO: SIGEA_DSI
+FECHA: 2025-11-11 09:49:28
+CARPETAS EXCLUIDAS: bootstrap, jquery, fontawesome, etc.
+================================================================================
+
+
+============================================================
+ARCHIVO: app\static\dashboard\dash.css
+============================================================
+
+:root{
+    --bg-primary: #31326F;
+    --bg-primary2: #395385;
+    --celeste: #6598e0;
+    --verde: #55cf9c;
+    --amarillo: #dee34c;
+    --rojo: #f7957f;
+    --blanco: #ffffff;
+    --font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --border-radius: 4px;
+    --transition-duration: 0.3s;
+
+
+
+    --btn_sec_enl:#31326F;
+    /* --btn_sec_enl:#016B61; */
+       --alert_suav:#f9a826;
+    --fond_claro:#f5f7fa;
+    --textos:#1c1c1c;
+    --gris:#ffffff;
+    --riesgo:#d9534f;
+    --amll_osc:#f0ad4e;
+    --progress:#5cb85c;
+
+   --paleta-carsd0:#31326F;
+    --paleta-carsd:#637AB9;
+    --paleta-carsd2:#4FB7B3;
+    --paleta-carsd3:#A8FBD3;
+
+
+}
+
+.bg-cards{
+    background-color: var(--paleta-carsd);
+}
+.bg-cards2{
+    background-color: var(--paleta-carsd2);
+}
+.bg-cards3{
+    background-color: var(--paleta-carsd3);
+}
+.bg-cards0{
+    background-color: var(--paleta-carsd0);
+}
+
+
+
+
+.bg-verde{
+    background-color: var(--progress);
+}
+.bg-amarillo{
+    background-color: var(--amll_osc);
+}
+.bg-rojo{
+    background-color: var(--riesgo);
+}
+.bg-azul{
+    background-color: var(--btn_sec_enl);
+}
+.bg-gris{
+    background: linear-gradient(90deg, var(--gris), var(--bg-primary2));
+}
+.card{
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: box-shadow var(--transition-duration);
+}
+
+.icon_tarj{
+    color: var(--btn_sec_enl);
+    /* color: var(--alert_suav); */
+}
+.icon_tarj2{
+    color: rgb(228, 236, 237);
+    /* color: var(--alert_suav); */
+}
+.text-warning{
+    color: var(--amll_osc) !important;
+}
+
+
+============================================================
+ARCHIVO: app\static\seguimiento\seguimiento.css
+============================================================
+
+:root{
+    --bg-primary: #07235c;
+    --bg-primary2: #395385;
+    --celeste: #6598e0;
+    --verde: #8ce4c0;
+    --amarillo: #f3f791;
+    --rojo: #eeb4a7;
+    --gris: #979696;
+    --font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --border-radius: 4px;
+    --transition-duration: 0.3s;
+}
+
+.bg-primary2{
+
+    background-color: var(--bg-primary2) !important;
+}
+
+.bg-verde{
+    background-color: var(--verde);
+}
+.bg-ama{
+    background-color: var(--amarillo);
+}
+.bg-rojo{
+    background-color: var(--rojo);
+}
+.bg-celeste{
+    background-color: var(--celeste);
+}
+
+
+============================================================
+ARCHIVO: app\templates\base.html
+============================================================
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>{% block title %}Sistema Analitico Desempeño Estudiantil{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='base/base.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard/dash.css') }}" />
+    
+    {% block styles %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar Principal -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-azul">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('dashboard.index') }}">
+                <img class="logo_see" src="{{url_for('static', filename='img/logo_see_f.png')}}" alt="logo">
+                <span class="separador">SADES</span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <ul class="navbar-nav me-auto">
+                    <!-- Dashboard -->
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active' if request.endpoint == 'dashboard.index' else '' }}" 
+                           href="{{ url_for('dashboard.index') }}">
+                             Dashboard
+                        </a>
+                    </li>
+                    
+                    <!-- Estudiantes -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {{ 'active' if request.endpoint and 'estudiantes' in request.endpoint else '' }}" 
+                           href="#" 
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                             Estudiantes
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item {{ 'active' if request.endpoint == 'estudiantes.index' else '' }}" 
+                                   href="{{ url_for('estudiantes.index') }}">
+                                    <i class="fas fa-list me-2"></i>Todos los Estudiantes
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {{ 'active' if request.endpoint == 'estudiantes.en_riesgo' else '' }}" 
+                                   href="{{ url_for('estudiantes.en_riesgo') }}">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>En Riesgo Académico
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Seguimiento -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {{ 'active' if request.endpoint and 'seguimiento' in request.endpoint else '' }}" 
+                           href="#" 
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                             Seguimiento
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item {{ 'active' if request.endpoint == 'seguimiento.index' else '' }}" 
+                                   href="{{ url_for('seguimiento.index') }}">
+                                    <i class="fas fa-calculator me-2"></i>Cálculo de Riesgo
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {{ 'active' if request.endpoint == 'seguimiento.resultados' else '' }}" 
+                                   href="{{ url_for('seguimiento.resultados') }}">
+                                    <i class="fas fa-chart-bar me-2"></i>Resultados
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Reportes -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {{ 'active' if request.endpoint and 'reportes' in request.endpoint else '' }}" 
+                           href="#" 
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                             Reportes
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item {{ 'active' if request.endpoint == 'reportes.index' else '' }}" 
+                                   href="{{ url_for('reportes.index') }}">
+                                    <i class="fas fa-home me-2"></i>Panel de Reportes
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item {{ 'active' if request.endpoint == 'reportes.individual' else '' }}" 
+                                   href="{{ url_for('reportes.individual') }}">
+                                    <i class="fas fa-user-graduate me-2"></i>Reporte Individual
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {{ 'active' if request.endpoint == 'reportes.general' else '' }}" 
+                                   href="{{ url_for('reportes.general') }}">
+                                    <i class="fas fa-users me-2"></i>Reporte General
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {{ 'active' if request.endpoint == 'reportes.historial' else '' }}" 
+                                   href="{{ url_for('reportes.historial') }}">
+                                    <i class="fas fa-history me-2"></i>Historial
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Importación -->
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active' if request.endpoint and 'importacion' in request.endpoint else '' }}" 
+                           href="{{ url_for('importacion.index') }}">
+                           Importación
+                        </a>
+                    </li>
+                    
+                    <!-- Agregar en el navbar, después del dropdown de Estudiantes -->
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if request.endpoint and 'cursos' in request.endpoint else '' }}"
+       href="{{ url_for('cursos.index') }}">
+        Cursos
+    </a>
+</li>
+
+<!-- Agregar en el navbar, después del enlace de Cursos -->
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if request.endpoint and 'inscripciones' in request.endpoint else '' }}"
+       href="{{ url_for('inscripciones.index') }}">
+        Inscripciones
+    </a>
+</li>
+<!-- Agregar en el navbar, después del enlace de Inscripciones -->
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle {{ 'active' if request.endpoint and 'evaluaciones' in request.endpoint else '' }}"
+       href="#"
+       data-bs-toggle="dropdown"
+       aria-expanded="false">
+        Evaluaciones
+    </a>
+    <ul class="dropdown-menu">
+        <li>
+            <a class="dropdown-item {{ 'active' if request.endpoint == 'evaluaciones.index' else '' }}"
+               href="{{ url_for('evaluaciones.index') }}">
+                <i class="fas fa-clipboard-check me-2"></i>Gestión de Evaluaciones
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item {{ 'active' if request.endpoint == 'evaluaciones.notas_index' else '' }}"
+               href="{{ url_for('evaluaciones.notas_index') }}">
+                <i class="fas fa-chart-bar me-2"></i>Registro de Notas
+            </a>
+        </li>
+    </ul>
+</li>
+<!-- Agregar en el navbar, después del dropdown de Evaluaciones -->
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if request.endpoint and 'asistencias' in request.endpoint else '' }}"
+       href="{{ url_for('asistencias.index') }}">
+        Asistencias
+    </a>
+</li>
+                </ul>
+
+                <!-- Lado derecho del navbar -->
+                <ul class="navbar-nav ms-auto">
+                    <!-- Administración (solo para administradores) -->
+                    {% if current_user.rol == 'administrador' %}
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active' if request.endpoint and 'admin' in request.endpoint else '' }}" 
+                           href="{{ url_for('admin.index') }}">
+                            <i class="fas fa-cogs me-1"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    <!-- Usuario -->
+                    <li class="nav-item">
+                        <span class="navbar-text me-3">
+                            
+                            
+                        </span>
+                    </li>
+
+
+                    <!-- Logout -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.logout') }}">
+                            <i class="fas fa-sign-out-alt me-1"></i> Salir
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <main class="container mt-4">
+        <!-- Mensajes Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Breadcrumb -->
+        {% block breadcrumb %}{% endblock %}
+        
+        <!-- Contenido específico de cada página -->
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-light mt-5 py-4">
+        <div class="container text-center text-muted">
+            <small>Sistema Analitico de Desempeño Estudiantil &copy; 2025</small>
+            <!-- <small>Sistema de Seguimiento y Acompañamiento para Estudiantes en Riesgo &copy; 2024</small> -->
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- JavaScript PERSONALIZADO PARA DROPDOWNS FUNCIONALES -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Inicializando dropdowns personalizados...');
+        
+        // Manejar todos los dropdowns del navbar
+        const dropdownToggles = document.querySelectorAll('.nav-item.dropdown .dropdown-toggle');
+        
+        dropdownToggles.forEach(toggle => {
+            const dropdownMenu = toggle.nextElementSibling;
+            const parentItem = toggle.parentElement;
+            
+            // Prevenir el cierre automático al hacer clic dentro del dropdown
+            dropdownMenu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            // Manejar clic en los items del dropdown
+            const dropdownItems = dropdownMenu.querySelectorAll('.dropdown-item');
+            dropdownItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    console.log('Navegando a:', this.href);
+                    // Permitir la navegación normal
+                    // El dropdown se cerrará automáticamente al cambiar de página
+                });
+            });
+            
+            // Alternativa: mantener dropdown abierto manualmente
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Cerrar otros dropdowns abiertos
+                document.querySelectorAll('.nav-item.dropdown .dropdown-menu').forEach(menu => {
+                    if (menu !== dropdownMenu && menu.classList.contains('show')) {
+                        menu.classList.remove('show');
+                    }
+                });
+                
+                // Alternar el dropdown actual
+                dropdownMenu.classList.toggle('show');
+            });
+        });
+        
+        // Cerrar dropdowns al hacer clic fuera del navbar
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.nav-item.dropdown')) {
+                document.querySelectorAll('.nav-item.dropdown .dropdown-menu').forEach(menu => {
+                    menu.classList.remove('show');
+                });
+            }
+        });
+        
+        console.log('Dropdowns inicializados correctamente');
+    });
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>
+
+
+============================================================
+ARCHIVO: app\templates\admin\backup.html
+============================================================
+
+{% extends "base.html" %}
+
+{% block title %}Backup - Sistema de Seguimiento{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Administración</a></li>
+        <li class="breadcrumb-item active">Backup</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-database text-primary"></i>
+                Backup y Restauración
+            </h2>
+            <a href="{{ url_for('admin.index') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+
+        <div class="row">
+            <!-- Backup de Datos -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-save"></i>
+                            Backup de Datos
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            Cree una copia de seguridad de todos los datos del sistema.
+                        </p>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Información:</strong> El backup incluirá estudiantes, cursos, notas, asistencias y configuración.
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="backup_type" class="form-label">Tipo de Backup</label>
+                            <select class="form-select" id="backup_type">
+                                <option value="complete">Backup Completo</option>
+                                <option value="data_only">Solo Datos</option>
+                                <option value="config_only">Solo Configuración</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="backup_description" class="form-label">Descripción (Opcional)</label>
+                            <textarea class="form-control" id="backup_description" rows="2" 
+                                      placeholder="Descripción del backup..."></textarea>
+                        </div>
+
+                        <button class="btn btn-success w-100" id="btn-backup">
+                            <i class="fas fa-download"></i> Generar Backup
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Restauración -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-upload"></i>
+                            Restauración
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            Restaure el sistema desde un archivo de backup anterior.
+                        </p>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Advertencia:</strong> Esta acción sobrescribirá los datos actuales.
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="backup_file" class="form-label">Seleccionar Archivo de Backup</label>
+                            <input type="file" class="form-control" id="backup_file" accept=".json,.sql,.backup">
+                            <div class="form-text">
+                                Formatos soportados: JSON, SQL
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="confirm_restore">
+                                <label class="form-check-label" for="confirm_restore">
+                                    Confirmo que entiendo que se perderán los datos actuales
+                                </label>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-warning w-100" id="btn-restore" disabled>
+                            <i class="fas fa-upload"></i> Restaurar Sistema
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historial de Backups -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-history"></i>
+                    Historial de Backups Recientes
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Descripción</th>
+                                <th>Tipo</th>
+                                <th>Tamaño</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-3">
+                                    <i class="fas fa-info-circle"></i>
+                                    No hay backups registrados
+                                </td>
+                            </tr>
+                            <!-- En un sistema real aquí se listarían los backups -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del Sistema -->
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <i class="fas fa-hdd fa-2x text-primary mb-2"></i>
+                        <h6>Espacio en Disco</h6>
+                        <p class="mb-0">Disponible: 15.2 GB</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <i class="fas fa-calendar-alt fa-2x text-success mb-2"></i>
+                        <h6>Último Backup</h6>
+                        <p class="mb-0">No realizado</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <i class="fas fa-database fa-2x text-info mb-2"></i>
+                        <h6>Tamaño Base de Datos</h6>
+                        <p class="mb-0">~2.3 MB</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Habilitar botón de restauración solo cuando esté confirmado
+    const confirmCheckbox = document.getElementById('confirm_restore');
+    const restoreButton = document.getElementById('btn-restore');
+    
+    confirmCheckbox.addEventListener('change', function() {
+        restoreButton.disabled = !this.checked;
+    });
+
+    // Simular backup (en un sistema real esto haría una llamada al servidor)
+    document.getElementById('btn-backup').addEventListener('click', function() {
+        if (confirm('¿Está seguro de generar un backup del sistema?')) {
+            // Simular proceso de backup
+            const button = this;
+            const originalText = button.innerHTML;
+            
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
+            button.disabled = true;
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+                alert('Backup generado exitosamente (simulación)');
+            }, 2000);
+        }
+    });
+
+    // Simular restauración
+    document.getElementById('btn-restore').addEventListener('click', function() {
+        const fileInput = document.getElementById('backup_file');
+        
+        if (!fileInput.files.length) {
+            alert('Por favor seleccione un archivo de backup');
+            return;
+        }
+        
+        if (confirm('¿ESTÁ SEGURO? Esta acción no se puede deshacer y perderá todos los datos actuales.')) {
+            // Simular proceso de restauración
+            const button = this;
+            const originalText = button.innerHTML;
+            
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restaurando...';
+            button.disabled = true;
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+                alert('Sistema restaurado exitosamente (simulación)');
+            }, 3000);
+        }
+    });
+});
+</script>
+{% endblock %}
+

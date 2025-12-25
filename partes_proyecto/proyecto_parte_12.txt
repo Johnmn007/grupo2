@@ -1,0 +1,722 @@
+PARTE: 12
+PROYECTO: SIGEA_DSI
+FECHA: 2025-11-11 09:49:28
+CARPETAS EXCLUIDAS: bootstrap, jquery, fontawesome, etc.
+================================================================================
+
+
+============================================================
+ARCHIVO: app\templates\auth\login.html
+============================================================
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistema de Seguimiento Estudiantil</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='auth/login.css') }}">
+</head>
+<body class="bg-light">
+    <div class="container">
+        <div class="row justify-content-center min-vh-100 align-items-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white text-center">
+                        <div class="row">
+                            <div class="col-2">
+                            <img style="width: 5em;" class="logo_see" src="{{url_for('static', filename='img/logo_see_f.png')}}" alt="logo">
+                        </div>
+                        <div class="col-10">
+                            <h4 style="font-size:2em;" class="mb-0">
+                            SADES 
+                        </h4>
+                        <small>Sistema Analitico de Desempeño Estudiantil</small>
+                        </div>
+                        </div>
+                    
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="POST" action="{{ url_for('auth.login') }}">
+                            {{ form.hidden_tag() }}
+                            
+                            <!-- Mensajes Flash -->
+                            {% with messages = get_flashed_messages(with_categories=true) %}
+                                {% if messages %}
+                                    {% for category, message in messages %}
+                                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                            {{ message }}
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endwith %}
+
+                            <div class="mb-3">
+                                {{ form.email.label(class="form-label") }}
+                                {{ form.email(class="form-control", placeholder="usuario@ejemplo.com") }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.email.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form.password.label(class="form-label") }}
+                                {{ form.password(class="form-control", placeholder="Ingrese su contraseña") }}
+                                {% if form.password.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.password.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="d-grid">
+                                {{ form.submit(class="btn bg-primary btn-lg text-white") }}
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-footer text-center text-muted">
+                        <small>Sistema analitico de desempeño estudiantil &copy; 2025</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+
+============================================================
+ARCHIVO: app\templates\cursos\crear.html
+============================================================
+
+{% extends "base.html" %}
+
+{% block title %}Crear Curso - Sistema de Seguimiento{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('cursos.index') }}">Cursos</a></li>
+        <li class="breadcrumb-item active">Crear Curso</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-book-medical text-dark"></i>
+                Crear Nuevo Curso
+            </h2>
+            <a href="{{ url_for('cursos.index') }}" class="btn btn-primary text-white bg-cards">
+                <i class="fas fa-arrow-left"></i> Volver a la lista
+            </a>
+        </div>
+
+        <div class="card ">
+            <div class="card-header bg-cards2  text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle"></i>
+                    Información del Curso
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('cursos.crear') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.codigo_curso.label(class="form-label") }}
+                                {{ form.codigo_curso(class="form-control") }}
+                                {% if form.codigo_curso.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.codigo_curso.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Código único del curso (ej: MAT101, PROG102)</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.semestre.label(class="form-label") }}
+                                {{ form.semestre(class="form-control") }}
+                                {% if form.semestre.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.semestre.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Formato: AÑO-SEMESTRE (ej: 2024-1, 2024-2)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                {{ form.nombre_curso.label(class="form-label") }}
+                                {{ form.nombre_curso(class="form-control") }}
+                                {% if form.nombre_curso.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.nombre_curso.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                {{ form.creditos.label(class="form-label") }}
+                                {{ form.creditos(class="form-control", type="number", min="1", max="10") }}
+                                {% if form.creditos.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.creditos.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.activo(class="form-check-input") }}
+                            {{ form.activo.label(class="form-check-label") }}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('cursos.index') }}" class="btn btn-primary bg-cards">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        {{ form.submit(class="btn btn-primary bg-cards2") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+============================================================
+ARCHIVO: app\templates\cursos\detalle.html
+============================================================
+
+{% extends "base.html" %}
+
+{% block title %}{{ curso.nombre_curso }} - Sistema de Seguimiento{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('cursos.index') }}">Cursos</a></li>
+        <li class="breadcrumb-item active">{{ curso.nombre_curso }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-book text-dark"></i>
+                {{ curso.nombre_curso }}
+            </h2>
+            <div>
+                <a href="{{ url_for('cursos.editar', curso_id=curso.id) }}" class="btn btn-primary me-2 bg-cards2">
+                    <i class="fas fa-edit"></i> Editar Curso
+                </a>
+                <form method="POST" action="{{ url_for('cursos.eliminar', curso_id=curso.id) }}" 
+                      class="d-inline" onsubmit="return confirm('¿Está seguro de eliminar este curso?');">
+                    <button type="submit" class="btn btn-primary bg-cards">
+                        <i class="fas fa-trash"></i> Eliminar Curso
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Información del Curso -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-cards text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-info-circle"></i>
+                            Información del Curso
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-sm-4 fw-bold">Código:</div>
+                            <div class="col-sm-8">{{ curso.codigo_curso }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4 fw-bold">Nombre:</div>
+                            <div class="col-sm-8">{{ curso.nombre_curso }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4 fw-bold">Créditos:</div>
+                            <div class="col-sm-8">{{ curso.creditos }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-sm-4 fw-bold">Semestre:</div>
+                            <div class="col-sm-8">{{ curso.semestre }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4 fw-bold">Estado:</div>
+                            <div class="col-sm-8">
+                                {% if curso.activo %}
+                                <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                <span class="badge bg-danger">Inactivo</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estadísticas -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-cards2 text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-bar"></i>
+                            Estadísticas del Curso
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6 bg-">
+                                <h3>{{ inscripciones|length }}</h3>
+                                <p class="text-muted mb-0">Estudiantes Inscritos</p>
+                            </div>
+                            <div class="col-6">
+                                <h3>{{ evaluaciones|length }}</h3>
+                                <p class="text-muted mb-0">Evaluaciones</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estudiantes Inscritos -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-cards2 text-light">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-users"></i>
+                            Estudiantes Inscritos
+                            <span class="badge bg-cards">{{ inscripciones|length }}</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if inscripciones %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Estudiante</th>
+                                        <th>Código</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for inscripcion in inscripciones %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ url_for('estudiantes.detalle', estudiante_id=inscripcion.estudiante.id) }}">
+                                                {{ inscripcion.estudiante.nombres }} {{ inscripcion.estudiante.apellidos }}
+                                            </a>
+                                        </td>
+                                        <td>{{ inscripcion.estudiante.codigo_estudiante }}</td>
+                                        <td>
+                                            <span class="badge {% if inscripcion.estado == 'ACTIVO' %}bg-success{% else %}bg-secondary{% endif %}">
+                                                {{ inscripcion.estado }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-users-slash fa-2x mb-2"></i>
+                            <p>No hay estudiantes inscritos en este curso</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Evaluaciones -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-cards text-light">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-clipboard-list"></i>
+                            Evaluaciones del Curso
+                            <span class="badge bg-cards2">{{ evaluaciones|length }}</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if evaluaciones %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Evaluación</th>
+                                        <th>Tipo</th>
+                                        <th>Peso</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for evaluacion in evaluaciones %}
+                                    <tr>
+                                        <td>{{ evaluacion.nombre_evaluacion }}</td>
+                                        <td>{{ evaluacion.tipo_evaluacion or 'No especificado' }}</td>
+                                        <td>{{ evaluacion.peso }}%</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-clipboard fa-2x mb-2"></i>
+                            <p>No hay evaluaciones registradas para este curso</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('cursos.index') }}" class="btn btn-primary bg-cards2">
+                        <i class="fas fa-arrow-left"></i> Volver a la lista
+                    </a>
+                    <a href="{{ url_for('cursos.crear') }}" class="btn btn-primary bg-cards">
+                        <i class="fas fa-plus"></i> Crear Nuevo Curso
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+============================================================
+ARCHIVO: app\templates\cursos\editar.html
+============================================================
+
+{% extends "base.html" %}
+
+{% block title %}Editar Curso - Sistema de Seguimiento{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('cursos.index') }}">Cursos</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('cursos.detalle', curso_id=curso.id) }}">{{ curso.nombre_curso }}</a></li>
+        <li class="breadcrumb-item active">Editar</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-edit text-primary"></i>
+                Editar Curso
+            </h2>
+            <a href="{{ url_for('cursos.detalle', curso_id=curso.id) }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Volver al detalle
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit"></i>
+                    Editar Información del Curso
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('cursos.editar', curso_id=curso.id) }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.codigo_curso.label(class="form-label") }}
+                                {{ form.codigo_curso(class="form-control") }}
+                                {% if form.codigo_curso.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.codigo_curso.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.semestre.label(class="form-label") }}
+                                {{ form.semestre(class="form-control") }}
+                                {% if form.semestre.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.semestre.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                {{ form.nombre_curso.label(class="form-label") }}
+                                {{ form.nombre_curso(class="form-control") }}
+                                {% if form.nombre_curso.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.nombre_curso.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                {{ form.creditos.label(class="form-label") }}
+                                {{ form.creditos(class="form-control", type="number", min="1", max="10") }}
+                                {% if form.creditos.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.creditos.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.activo(class="form-check-input") }}
+                            {{ form.activo.label(class="form-check-label") }}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('cursos.detalle', curso_id=curso.id) }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <div>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save"></i> Actualizar Curso
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+============================================================
+ARCHIVO: app\templates\cursos\index.html
+============================================================
+
+{% extends "base.html" %}
+
+{% block title %}Cursos - Sistema de Seguimiento{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Cursos</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-book text-dark"></i>
+                Gestión de Cursos
+            </h2>
+            <a href="{{ url_for('cursos.crear') }}" class="btn btn-primary bg-cards">
+                <i class="fas fa-plus"></i>
+                Nuevo Curso
+            </a>
+        </div>
+
+        <!-- Barra de búsqueda -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('cursos.index') }}">
+                    <div class="input-group">
+                        <input type="text" class="form-control"
+                            name="search" value="{{ search }}"
+                            placeholder="Buscar por nombre, código o semestre...">
+                        <button class="btn btn-primary bg-cards2" type="submit">
+                            <i class="fas fa-search"></i> Buscar
+                        </button>
+                        {% if search %}
+                        <a href="{{ url_for('cursos.index') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i> Limpiar
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tabla de cursos -->
+        <div class="card">
+            <div class="card-header bg-cards text-light">
+                <h5 class="card-title mb-0">
+                    Lista de Cursos
+                    <span class="badge bg-cards2">{{ cursos.total }}</span>
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if cursos.items %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre del Curso</th>
+                                <th>Créditos</th>
+                                <th>Semestre</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for curso in cursos.items %}
+                            <tr>
+                                <td>
+                                    <strong>{{ curso.codigo_curso }}</strong>
+                                </td>
+                                <td>{{ curso.nombre_curso }}</td>
+                                <td>{{ curso.creditos }}</td>
+                                <td>{{ curso.semestre }}</td>
+                                <td>
+                                    {% if curso.activo %}
+                                    <span class="badge bg-success">Activo</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Inactivo</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('cursos.detalle', curso_id=curso.id) }}"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> Ver
+                                        </a>
+                                        <a href="{{ url_for('cursos.editar', curso_id=curso.id) }}"
+                                           class="btn btn-sm btn-outline-warning">
+                                            <i class="fas fa-edit"></i> Editar
+                                        </a>
+                                        <form method="POST" action="{{ url_for('cursos.eliminar', curso_id=curso.id) }}" 
+                                              class="d-inline" onsubmit="return confirm('¿Está seguro de eliminar este curso?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-trash"></i> Eliminar
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                    <h5>No se encontraron cursos</h5>
+                    <p class="text-muted">
+                        {% if search %}
+                        No hay resultados para "{{ search }}"
+                        {% else %}
+                        No hay cursos registrados en el sistema
+                        {% endif %}
+                    </p>
+                    <a href="{{ url_for('cursos.crear') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Crear Primer Curso
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Paginación -->
+            {% if cursos.pages > 1 %}
+            <div class="card-footer">
+                <nav aria-label="Paginación">
+                    <ul class="pagination justify-content-center mb-0">
+                        {% for page_num in cursos.iter_pages() %}
+                        {% if page_num %}
+                        <li class="page-item {% if page_num == cursos.page %}active{% endif %}">
+                            <a class="page-link"
+                               href="{{ url_for('cursos.index', page=page_num, search=search) }}">
+                                {{ page_num }}
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

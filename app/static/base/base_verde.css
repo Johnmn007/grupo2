@@ -1,0 +1,177 @@
+:root{
+     --paleta-carsd0:#07235c;
+    --paleta-carsd:#14dab9;
+} 
+ 
+ 
+ /* Estilos para el menú lateral */
+        body {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background-image: linear-gradient(0deg,var(--paleta-carsd),var(--paleta-carsd0));
+            color: white;
+            transition: all 0.3s;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar.collapsed {
+            width: 70px;
+        }
+        
+        .sidebar.collapsed .sidebar-text {
+            display: none;
+        }
+        
+        .sidebar-header {
+            padding: 20px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+            display: flex;
+            align-items: center;
+        }
+        
+        .sidebar-header .logo_see {
+            height: 40px;
+            margin-right: 10px;
+        }
+        
+        .sidebar-header .separador {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .sidebar-menu {
+            padding: 15px 0;
+        }
+        
+        .sidebar-menu .nav-item {
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-menu .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 10px 15px;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        
+        .sidebar-menu .nav-link:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+        }
+        
+        .sidebar-menu .nav-link.active {
+            background-color: rgba(255,255,255,0.2);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .sidebar-menu .nav-link i {
+            width: 25px;
+            text-align: center;
+            margin-right: 10px;
+        }
+        
+        .sidebar-menu .dropdown-menu {
+            background-color: rgb(17, 100, 96);
+            border: none;
+            border-radius: 0;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .sidebar-menu .dropdown-item {
+            color: rgba(255,255,255,0.8);
+            padding: 10px 15px 10px 45px;
+        }
+        
+        .sidebar-menu .dropdown-item:hover {
+            background-color: rgba(255, 255, 255, 0.21);
+            color: white;
+        }
+        
+        .sidebar-menu .dropdown-item.active {
+            background-color: rgba(62, 115, 98, 0.76);
+            color: white;
+        }
+        
+        .sidebar-menu .dropdown-divider {
+            border-color: rgba(255,255,255,0.1);
+            margin: 5px 0;
+        }
+        
+        .sidebar-footer {
+            padding: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            transition: margin-left 0.3s;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .main-content.expanded {
+            margin-left: 70px;
+        }
+        
+        .top-bar {
+            background-color: #f8f9fa;
+            padding: 10px 20px;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .toggle-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #6c757d;
+            cursor: pointer;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .content-wrapper {
+            flex: 1;
+            padding: 20px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+            
+            .sidebar .sidebar-text {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 70px;
+            }
+            
+            .sidebar-header .separador {
+                display: none;
+            }
+        }
