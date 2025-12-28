@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, app
 from app.extensions import db, migrate, login_manager
 from config import config_by_name
 
@@ -84,4 +84,8 @@ def create_app(config_name=None):
     from app.modules.asistencias import asistencias_bp
     app.register_blueprint(asistencias_bp)
     
+    # 12. Reporte Alumno
+    from app.modules.reporte_alumno import reporte_alumno_bp
+    app.register_blueprint(reporte_alumno_bp)
+
     return app

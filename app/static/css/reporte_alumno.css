@@ -1,0 +1,93 @@
+/* =========================================================
+   REPORTE ALUMNO
+   Integrado con estilos del sistema (Bootstrap)
+   + soporte para impresión
+   ========================================================= */
+
+/* CONTENEDOR PRINCIPAL DEL DOCUMENTO */
+.documento-reporte {
+    max-width: 900px;
+    margin: 0 auto 40px auto;
+    background-color: #ffffff;
+    padding: 32px;
+    border: 1px solid #dee2e6; /* mismo tono que Bootstrap */
+    border-radius: 4px;
+    color: #212529;
+    font-size: 14px;
+}
+
+/* ENCABEZADO DEL DOCUMENTO */
+.documento-reporte p {
+    margin-bottom: 6px;
+}
+
+/* TABLA DEL REPORTE */
+.documento-reporte table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.documento-reporte thead th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid #dee2e6;
+}
+
+.documento-reporte tbody td {
+    border: 1px solid #dee2e6;
+    padding: 8px;
+    vertical-align: middle;
+}
+
+/* CENTRADO DE COLUMNAS NUMÉRICAS */
+.documento-reporte td.text-center,
+.documento-reporte th.text-center {
+    text-align: center;
+}
+
+/* MENSAJE INICIAL */
+.documento-reporte .text-muted {
+    font-style: italic;
+}
+
+/* =========================================================
+   ESTILOS DE IMPRESIÓN
+   ========================================================= */
+@media print {
+
+    /* Ocultar todo */
+    body * {
+        visibility: hidden;
+    }
+
+    /* Mostrar solo el documento */
+    .documento-reporte,
+    .documento-reporte * {
+        visibility: visible;
+    }
+
+    .documento-reporte {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        border: none;
+        border-radius: 0;
+        font-size: 12px;
+    }
+
+    /* Quitar colores innecesarios */
+    .documento-reporte thead th {
+        background-color: #ffffff !important;
+        color: #000000;
+    }
+}
+/* BOTÓN IMPRIMIR (solo pantalla) */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+}

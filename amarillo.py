@@ -64,5 +64,5 @@ def cambiar_a_alerta_amarilla(codigo_estudiante):
 
 if __name__ == "__main__":
     # CAMBIA ESTE CÓDIGO POR EL DEL ESTUDIANTE QUE QUIERES MODIFICAR
-    codigo_estudiante = "2025ROJ001"  # ← CAMBIA AQUÍ
+    codigo_estudiante = "73546984"  # ← CAMBIA AQUÍ
     cambiar_a_alerta_amarilla(codigo_estudiante)

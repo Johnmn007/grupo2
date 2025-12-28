@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/reporte_alumno.css') }}">
+
+<div class="container mt-4">
+
+    <h3 class="mb-4">Reporte Académico del Estudiante</h3>
+
+    <!-- FILTROS -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+
+                <!-- CICLO -->
+                <div class="col-md-5">
+                    <label class="form-label">Ciclo Académico</label>
+                    <select name="ciclo_id" class="form-select" required>
+                        <option value="">-- Seleccione ciclo --</option>
+                        {% for c in ciclos %}
+                        <option value="{{ c.id }}" {% if ciclo and c.id==ciclo.id %}selected{% endif %}>
+                            {{ c.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- ESTUDIANTE -->
+                <div class="col-md-5">
+                    <label class="form-label">Estudiante</label>
+                    <select name="estudiante_id" class="form-select" required>
+                        <option value="">-- Seleccione estudiante --</option>
+                        {% for alumno in alumnos %}
+                        <option value="{{ alumno.id }}" {% if estudiante and alumno.id==estudiante.id %}selected{% endif
+                            %}>
+                            {{ alumno.apellidos }}, {{ alumno.nombres }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- BOTÓN -->
+                <div class="col-md-2 d-grid">
+                    <button type="submit" class="btn btn-primary">
+                        Ver reporte
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- DOCUMENTO -->
+
+    {% if estudiante and ciclo %}
+    <div class="mb-3 text-end no-print">
+        <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
+            <i class="fas fa-print"></i>
+            Imprimir
+        </button>
+    </div>
+    {% endif %}
+
+
+
+    <div class="documento-reporte">
+
+        {% if estudiante and ciclo %}
+        <div class="mb-3">
+            <p><strong>Estudiante:</strong>
+                {{ estudiante.nombres }} {{ estudiante.apellidos }}</p>
+            <p><strong>Ciclo académico:</strong> {{ ciclo.nombre }}</p>
+        </div>
+
+        {% if cursos and cursos|length > 0 %}
+        <div class="alert alert-secondary mt-3">
+            <strong>Promedio General Ponderado:</strong>
+            {{ promedio_general }} <br>
+            <small class="text-muted">
+                Total de créditos considerados: {{ total_creditos }}
+            </small>
+        </div>
+        {% endif %}
+
+
+        {% if cursos and cursos|length > 0 %}
+        <table class="table table-bordered mt-3">
+            <thead>
+                <tr>
+                    <th>Curso</th>
+                    <th class="text-center">Créditos</th>
+                    <th class="text-center">Promedio</th>
+                    <th class="text-center">% Asistencia</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cursos %}
+                <tr>
+                    <td>{{ item.curso.nombre_curso }}</td>
+                    <td class="text-center">{{ item.curso.creditos }}</td>
+                    <td class="text-center">{{ item.promedio }}</td>
+                    <td class="text-center">{{ item.porcentaje_asistencia }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No hay cursos registrados para este estudiante en el ciclo seleccionado.</p>
+        {% endif %}
+
+        {% else %}
+        <p class="text-muted">
+            Seleccione un ciclo académico y un estudiante para visualizar el reporte.
+        </p>
+        {% endif %}
+
+    </div>
+
+</div>
+{% endblock %}

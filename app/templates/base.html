@@ -212,7 +212,17 @@
                 </li>
                 
                 <!-- Reportes -->
-                <li class="nav-item dropdown">
+                 {% if 'alumno' in current_user.rol|string|lower
+   or 'administrador' in current_user.rol|string|lower %}
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('reporte_alumno.index') }}">
+        <i class="fas fa-user-graduate"></i>
+        <span>Reportes</span>
+    </a>
+</li>
+{% endif %}
+
+                <!-- <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle {{ 'active' if request.endpoint and 'reportes' in request.endpoint else '' }}" 
                        href="#" 
                        data-bs-toggle="dropdown"
@@ -247,7 +257,7 @@
                             </a>
                         </li>
                     </ul>
-                </li>
+                </li> -->
                 
                 <!-- Importación -->
                 <li class="nav-item">
