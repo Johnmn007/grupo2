@@ -45,7 +45,7 @@
                                 <select class="form-select" id="curso_id" name="curso_id">
                                     <option value="">Todos los cursos</option>
                                     {% for curso in cursos %}
-                                    <option value="{{ curso.id }}" {% if curso_id == curso.id %}selected{% endif %}>
+                                    <option value="{{ curso.id }}" {% if curso_id==curso.id %}selected{% endif %}>
                                         {{ curso.codigo_curso }} - {{ curso.nombre_curso }}
                                     </option>
                                     {% endfor %}
@@ -58,8 +58,10 @@
                                 <select class="form-select" id="estudiante_id" name="estudiante_id">
                                     <option value="">Todos los estudiantes</option>
                                     {% for estudiante in estudiantes %}
-                                    <option value="{{ estudiante.id }}" {% if estudiante_id == estudiante.id %}selected{% endif %}>
-                                        {{ estudiante.codigo_estudiante }} - {{ estudiante.nombres }} {{ estudiante.apellidos }}
+                                    <option value="{{ estudiante.id }}" {% if estudiante_id==estudiante.id %}selected{%
+                                        endif %}>
+                                        {{ estudiante.codigo_estudiante }} - {{ estudiante.nombres }} {{
+                                        estudiante.apellidos }}
                                     </option>
                                     {% endfor %}
                                 </select>
@@ -71,7 +73,7 @@
                                 <select class="form-select" id="semestre" name="semestre">
                                     <option value="">Todos los semestres</option>
                                     {% for sem in semestres %}
-                                    <option value="{{ sem[0] }}" {% if semestre == sem[0] %}selected{% endif %}>
+                                    <option value="{{ sem[0] }}" {% if semestre==sem[0] %}selected{% endif %}>
                                         {{ sem[0] }}
                                     </option>
                                     {% endfor %}
@@ -83,7 +85,8 @@
                         <button type="submit" class="btn btn-primary text-light secciones">
                             <i class="fas fa-filter"></i> Aplicar Filtros
                         </button>
-                        <a href="{{ url_for('asistencias.estadisticas') }}" class="btn btn-outline-secondary text-light secciones">
+                        <a href="{{ url_for('asistencias.estadisticas') }}"
+                            class="btn btn-outline-secondary text-light secciones">
                             <i class="fas fa-times"></i> Limpiar Filtros
                         </a>
                     </div>
@@ -191,7 +194,8 @@
             <div class="col-md-3">
                 <div class="card bg-verde text-dark">
                     <div class="card-body text-center">
-                        <h3>{{ "%.1f"|format(estadisticas|map(attribute='porcentaje_asistencia')|sum / estadisticas|length) }}%</h3>
+                        <h3>{{ "%.1f"|format(estadisticas|map(attribute='porcentaje_asistencia')|map('float')|sum /
+                            estadisticas|length) }}%</h3>
                         <p class="mb-0">Promedio Asistencia</p>
                     </div>
                 </div>
@@ -199,7 +203,8 @@
             <div class="col-md-3">
                 <div class="card bg-ama text-dark">
                     <div class="card-body text-center">
-                        <h3>{{ "%.1f"|format(estadisticas|map(attribute='porcentaje_efectiva')|sum / estadisticas|length) }}%</h3>
+                        <h3>{{ "%.1f"|format(estadisticas|map(attribute='porcentaje_efectiva')|map('float')|sum /
+                            estadisticas|length) }}%</h3>
                         <p class="mb-0">Promedio Efectiva</p>
                     </div>
                 </div>
